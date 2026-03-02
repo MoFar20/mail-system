@@ -1,0 +1,658 @@
+/* Gmail Layout */
+.gmail-layout {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: #f6f8fc;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 256px;
+  min-width: 256px;
+  padding: 8px 8px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background-color: #f6f8fc;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+/* Sidebar Collapsed State */
+.gmail-layout.sidebar-collapsed .sidebar {
+  width: 72px;
+  min-width: 72px;
+  padding: 8px 8px;
+  align-items: center;
+}
+
+.gmail-layout.sidebar-collapsed .compose-btn {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 16px;
+}
+
+.gmail-layout.sidebar-collapsed .compose-text {
+  display: none;
+}
+
+.gmail-layout.sidebar-collapsed .nav-item {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 4px 0;
+}
+
+.gmail-layout.sidebar-collapsed .nav-label,
+.gmail-layout.sidebar-collapsed .nav-count {
+  display: none;
+}
+
+.gmail-layout.sidebar-collapsed .nav-divider {
+  width: 32px;
+  margin: 8px 0;
+}
+
+/* Compose Button - Gmail style */
+.compose-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 24px 0 16px;
+  margin-bottom: 12px;
+  background-color: #c2e7ff;
+  border: none;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #001d35;
+  cursor: pointer;
+  transition: box-shadow 0.2s, background-color 0.2s, width 0.2s, padding 0.2s;
+  text-decoration: none;
+  width: fit-content;
+}
+
+.compose-btn:hover {
+  background-color: #a8dafa;
+  box-shadow: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+}
+
+.compose-btn svg {
+  color: #001d35;
+  flex-shrink: 0;
+}
+
+.compose-text {
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+}
+
+/* Navigation Menu */
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 32px;
+  padding: 0 12px 0 24px;
+  margin-right: 8px;
+  border-radius: 0 16px 16px 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #202124;
+  cursor: pointer;
+  transition: background-color 0.2s, width 0.2s, padding 0.2s, border-radius 0.2s;
+  text-decoration: none;
+  user-select: none;
+}
+
+.nav-item:hover {
+  background-color: #e8eaed;
+}
+
+.nav-item.active {
+  background-color: #d3e3fd;
+  color: #001d35;
+}
+
+.nav-item svg {
+  flex-shrink: 0;
+  color: inherit;
+}
+
+.nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.nav-divider {
+  height: 1px;
+  background-color: #e8eaed;
+  margin: 8px 16px;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #fff;
+  margin: 0 16px 16px 0;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 8px 0 16px;
+  border-bottom: 1px solid #e8eaed;
+  background-color: #fff;
+  border-radius: 16px 16px 0 0;
+}
+
+.toolbar-left,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.checkbox-wrapper:hover {
+  background-color: #f1f3f4;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1a73e8;
+}
+
+.dropdown-arrow {
+  margin-left: 2px;
+  color: #5f6368;
+}
+
+/* Checkbox Dropdown */
+.checkbox-dropdown-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px 2px rgba(60, 64, 67, 0.15), 0 1px 2px 0 rgba(60, 64, 67, 0.3);
+  z-index: 1100;
+  min-width: 140px;
+  overflow: hidden;
+  animation: dropdownFadeIn 0.1s ease-out;
+  pointer-events: auto;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-option {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  color: #202124;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.dropdown-option:hover {
+  background-color: #f1f3f4;
+}
+
+.dropdown-option:first-child {
+  padding-top: 12px;
+}
+
+.dropdown-option:last-child {
+  padding-bottom: 12px;
+}
+
+.toolbar-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5f6368;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background-color: #f1f3f4;
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pagination-info {
+  font-size: 12px;
+  color: #5f6368;
+  margin: 0 8px;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  gap: 16px;
+  color: #5f6368;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e8eaed;
+  border-top-color: #1a73e8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  gap: 16px;
+  text-align: center;
+}
+
+.error-container svg {
+  color: #ea4335;
+}
+
+.error-container p {
+  font-size: 14px;
+  color: #5f6368;
+  margin: 0;
+}
+
+.retry-btn {
+  padding: 8px 24px;
+  border: 1px solid #dadce0;
+  background: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a73e8;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retry-btn:hover {
+  background-color: #f6f8fc;
+}
+
+/* Mail List */
+.mail-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.mail-row {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px 0 8px;
+  border-bottom: 1px solid #f1f3f4;
+  cursor: pointer;
+  transition: background-color 0.1s, box-shadow 0.2s;
+  gap: 0;
+}
+
+.mail-row:hover {
+  box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0,
+              0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  z-index: 1;
+  position: relative;
+}
+
+.mail-row.unread {
+  background-color: #f2f6fc;
+}
+
+.mail-row.unread:hover {
+  background-color: #eaf1fb;
+}
+
+/* Mail Row Elements */
+.mail-checkbox {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mail-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1a73e8;
+}
+
+.mail-star {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.mail-star:hover {
+  background-color: #f1f3f4;
+}
+
+.mail-star svg {
+  color: #dadce0;
+}
+
+.mail-star svg.starred {
+  color: #f4b400;
+}
+
+.mail-sender {
+  width: 200px;
+  min-width: 168px;
+  padding-right: 16px;
+  font-size: 14px;
+  color: #202124;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mail-sender .bold {
+  font-weight: 700;
+}
+
+.mail-content-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  padding-right: 16px;
+}
+
+.mail-subject {
+  color: #202124;
+}
+
+.mail-subject.bold {
+  font-weight: 700;
+}
+
+.mail-separator {
+  color: #5f6368;
+}
+
+.mail-snippet {
+  color: #5f6368;
+}
+
+.mail-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.status-indicator {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-draft {
+  background-color: #fef7e0;
+  color: #b06000;
+}
+
+.status-error {
+  background-color: #fce8e6;
+  color: #c5221f;
+}
+
+.mail-date {
+  font-size: 12px;
+  color: #5f6368;
+  min-width: 70px;
+  text-align: right;
+}
+
+.mail-date.bold {
+  font-weight: 700;
+  color: #202124;
+}
+
+/* Empty State */
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.empty-illustration {
+  margin-bottom: 24px;
+  opacity: 0.7;
+}
+
+.empty-container h2 {
+  font-size: 22px;
+  font-weight: 400;
+  color: #202124;
+  margin: 0 0 8px 0;
+}
+
+.empty-container p {
+  font-size: 14px;
+  color: #5f6368;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+  }
+
+  .mail-sender {
+    width: 150px;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 72px;
+    min-width: 72px;
+    padding: 8px 4px;
+  }
+
+  .compose-btn {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 16px;
+  }
+
+  .compose-text {
+    display: none;
+  }
+
+  .nav-item {
+    width: 56px;
+    height: 32px;
+    padding: 0;
+    margin: 2px auto;
+    justify-content: center;
+    border-radius: 16px;
+  }
+
+  .nav-label,
+  .nav-count {
+    display: none;
+  }
+
+  .nav-divider {
+    margin: 8px 12px;
+  }
+
+  .mail-sender {
+    width: 100px;
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-content {
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .toolbar {
+    border-radius: 0;
+  }
+
+  .mail-row {
+    padding: 0 12px 0 4px;
+  }
+
+  .mail-sender {
+    display: none;
+  }
+
+  .mail-date {
+    min-width: 50px;
+    font-size: 11px;
+  }
+}
+
+/* Compact View Styles */
+.gmail-layout.compact-view .mail-row {
+  height: 32px;
+  padding: 0 8px 0 12px;
+}
+
+.gmail-layout.compact-view .mail-checkbox {
+  margin-right: 8px;
+}
+
+.gmail-layout.compact-view .mail-star {
+  margin-right: 8px;
+}
+
+.gmail-layout.compact-view .mail-sender {
+  font-size: 13px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
+.gmail-layout.compact-view .mail-content {
+  gap: 4px;
+}
+
+.gmail-layout.compact-view .mail-subject {
+  font-size: 13px;
+}
+
+.gmail-layout.compact-view .mail-preview {
+  font-size: 12px;
+}
+
+.gmail-layout.compact-view .mail-date {
+  font-size: 11px;
+}
+
+.gmail-layout.compact-view .nav-item {
+  height: 28px;
+  font-size: 13px;
+}
+
+.gmail-layout.compact-view .compose-btn {
+  height: 44px;
+  font-size: 13px;
+}

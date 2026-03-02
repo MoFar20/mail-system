@@ -1,0 +1,217 @@
+<div class="gmail-layout" [class.sidebar-collapsed]="sidebarCollapsed" [class.compact-view]="compactView">
+  <!-- Sidebar navigation -->
+  <aside class="sidebar">
+    <button class="compose-btn" routerLink="/compose" [title]="sidebarCollapsed ? 'Compose' : ''">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+      </svg>
+      <span class="compose-text">Compose</span>
+    </button>
+
+    <nav class="nav-menu">
+      <a class="nav-item"
+         [class.active]="currentFolder === 'inbox'"
+         (click)="switchFolder('inbox')"
+         [title]="sidebarCollapsed ? 'Inbox' : ''">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M19 3H4.99c-1.11 0-1.98.9-1.98 2L3 19c0 1.1.88 2 1.99 2H19c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 12h-4c0 1.66-1.35 3-3 3s-3-1.34-3-3H4.99V5H19v10z"/>
+        </svg>
+        <span class="nav-label">Inbox</span>
+        <span class="nav-count" *ngIf="currentFolder === 'inbox' && mails.length > 0">{{ mails.length }}</span>
+      </a>
+
+      <a class="nav-item"
+         [class.active]="currentFolder === 'starred'"
+         (click)="switchFolder('starred')"
+         [title]="sidebarCollapsed ? 'Starred' : ''">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+        <span class="nav-label">Starred</span>
+      </a>
+
+      <a class="nav-item"
+         [class.active]="currentFolder === 'sent'"
+         (click)="switchFolder('sent')"
+         [title]="sidebarCollapsed ? 'Sent' : ''">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+        <span class="nav-label">Sent</span>
+        <span class="nav-count" *ngIf="currentFolder === 'sent' && mails.length > 0">{{ mails.length }}</span>
+      </a>
+
+      <a class="nav-item"
+         [class.active]="currentFolder === 'drafts'"
+         (click)="switchFolder('drafts')"
+         [title]="sidebarCollapsed ? 'Drafts' : ''">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M21.99 8c0-.72-.37-1.35-.94-1.7L12 1 2.95 6.3C2.38 6.65 2 7.28 2 8v10c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2l-.01-10zm-10 7L4 10.47V8.53l7.99 4.54L20 8.53v1.94L11.99 15z"/>
+        </svg>
+        <span class="nav-label">Drafts</span>
+        <span class="nav-count" *ngIf="currentFolder === 'drafts' && mails.length > 0">{{ mails.length }}</span>
+      </a>
+
+      <div class="nav-divider"></div>
+
+      <a class="nav-item"
+         [class.active]="currentFolder === 'archived'"
+         (click)="switchFolder('archived')"
+         [title]="sidebarCollapsed ? 'Archived' : ''">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 12H10v-2h4v2h3.5L12 17.5zM5.12 5l.81-1h12l.94 1H5.12z"/>
+        </svg>
+        <span class="nav-label">Archived</span>
+        <span class="nav-count" *ngIf="currentFolder === 'archived' && mails.length > 0">{{ mails.length }}</span>
+      </a>
+
+      <a class="nav-item"
+         [class.active]="currentFolder === 'all'"
+         (click)="switchFolder('all')"
+         [title]="sidebarCollapsed ? 'All Mail' : ''">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+        </svg>
+        <span class="nav-label">All Mail</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content area -->
+  <main class="main-content">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="checkbox-dropdown-wrapper">
+          <label class="checkbox-wrapper" (click)="toggleCheckboxDropdown($event)">
+            <input type="checkbox"
+                   [checked]="areAllSelected()"
+                   [indeterminate]="areSomeSelected()"
+                   (change)="toggleSelectAll($event)"
+                   (click)="$event.stopPropagation()">
+            <svg viewBox="0 0 24 24" width="11" height="11" class="dropdown-arrow">
+              <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+            </svg>
+          </label>
+          <div class="checkbox-dropdown" *ngIf="showCheckboxDropdown">
+            <button class="dropdown-option" (click)="selectByFilter('all')">
+              All
+            </button>
+            <button class="dropdown-option" (click)="selectByFilter('none')">
+              None
+            </button>
+            <button class="dropdown-option" (click)="selectByFilter('read')">
+              Read
+            </button>
+            <button class="dropdown-option" (click)="selectByFilter('unread')">
+              Unread
+            </button>
+            <button class="dropdown-option" (click)="selectByFilter('starred')">
+              Starred
+            </button>
+            <button class="dropdown-option" (click)="selectByFilter('unstarred')">
+              Not Starred
+            </button>
+          </div>
+        </div>
+        <button class="toolbar-btn" title="Refresh" (click)="refresh()">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+          </svg>
+        </button>
+        <button class="toolbar-btn" title="More" *ngIf="selectedMails.length > 0">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="toolbar-right">
+        <span class="pagination-info" *ngIf="filteredMails.length > 0">
+          1-{{ filteredMails.length }} of {{ mails.length }}
+        </span>
+        <button class="toolbar-btn" title="Newer" disabled>
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+          </svg>
+        </button>
+        <button class="toolbar-btn" title="Older" disabled>
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <span>Loading emails...</span>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="errorMessage" class="error-container">
+      <svg viewBox="0 0 24 24" width="48" height="48">
+        <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      </svg>
+      <p>{{ errorMessage }}</p>
+      <button class="retry-btn" (click)="refresh()">Try again</button>
+    </div>
+
+    <!-- Mail List -->
+    <div class="mail-list" *ngIf="!isLoading && filteredMails.length > 0">
+      <div *ngFor="let mail of filteredMails"
+           class="mail-row"
+           [class.unread]="!mail.read"
+           [routerLink]="['/mails', mail.id]">
+
+        <div class="mail-checkbox" (click)="$event.stopPropagation()">
+          <input type="checkbox" [(ngModel)]="mail.selected">
+        </div>
+
+        <div class="mail-star" (click)="toggleStar(mail, $event)">
+          <svg viewBox="0 0 24 24" width="20" height="20" [class.starred]="mail.starred">
+            <path *ngIf="!mail.starred" fill="currentColor" d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"/>
+            <path *ngIf="mail.starred" fill="#f4b400" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+          </svg>
+        </div>
+
+        <div class="mail-sender">
+          <span [class.bold]="!mail.read">{{ getSenderDisplay(mail) }}</span>
+        </div>
+
+        <div class="mail-content-preview">
+          <span class="mail-subject" [class.bold]="!mail.read">{{ mail.subject }}</span>
+          <span class="mail-separator"> - </span>
+          <span class="mail-snippet">{{ getMailSnippet(mail) }}</span>
+        </div>
+
+        <div class="mail-meta">
+          <span class="status-indicator" *ngIf="mail.status === 'DRAFT'"
+                [class]="'status-' + mail.status.toLowerCase()">
+            {{ getStatusLabel(mail.status) }}
+          </span>
+          <span class="status-indicator" *ngIf="mail.status === 'ERROR'"
+                [class]="'status-' + mail.status.toLowerCase()">
+            {{ getStatusLabel(mail.status) }}
+          </span>
+          <span class="mail-date" [class.bold]="!mail.read">{{ formatDate(mail.createdAt) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && filteredMails.length === 0" class="empty-container">
+      <div class="empty-illustration">
+        <svg viewBox="0 0 160 160" width="120" height="120">
+          <circle cx="80" cy="80" r="60" fill="#f1f3f4"/>
+          <path d="M80 40L120 65V105C120 110 116 115 110 115H50C44 115 40 110 40 105V65L80 40Z" fill="#dadce0"/>
+          <path d="M80 75L40 50V105C40 110 44 115 50 115H110C116 115 120 110 120 105V50L80 75Z" fill="#f8f9fa"/>
+          <path d="M80 75L40 50L80 25L120 50L80 75Z" fill="#e8eaed"/>
+        </svg>
+      </div>
+      <h2>{{ getEmptyMessage() }}</h2>
+      <p>{{ getEmptySubMessage() }}</p>
+    </div>
+  </main>
+</div>
+
