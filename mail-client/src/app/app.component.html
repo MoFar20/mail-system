@@ -1,0 +1,334 @@
+<header class="gmail-header" *ngIf="router.url !== '/login' && router.url !== '/register'">
+  <div class="header-left">
+    <button class="menu-btn" title="Main Menu" (click)="toggleSidebar()">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+      </svg>
+    </button>
+    <div class="logo-container">
+      <span class="logo-icon">📧</span>
+      <span class="logo-text">THM Mail-System</span>
+    </div>
+  </div>
+
+  <div class="header-center">
+    <div class="search-container">
+      <button class="search-icon-btn" (click)="performSearch()">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+      </button>
+      <input type="text"
+             placeholder="Search mail"
+             class="search-input"
+             [(ngModel)]="searchQuery"
+             (keyup)="onSearchKeyup($event)">
+      <button *ngIf="searchQuery" class="search-clear-btn" (click)="clearSearch()">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      <button class="search-filter-btn" (click)="toggleAdvancedSearch()" title="Show search options">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="header-right" *ngIf="authService.isLoggedIn()">
+    <button class="icon-btn" title="Help & About" (click)="openHelpModal()">
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path fill="currentColor" d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+      </svg>
+    </button>
+    <div class="settings-menu">
+      <button class="icon-btn" title="Settings" (click)="toggleSettingsMenu()">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65A.488.488 0 0014 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+        </svg>
+      </button>
+      <div class="settings-dropdown" *ngIf="showSettingsMenu">
+        <div class="settings-header">
+          <span>Settings</span>
+        </div>
+        <div class="settings-section">
+          <div class="settings-item">
+            <div class="settings-item-info">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+              </svg>
+              <span>Dark Mode</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="darkMode" (change)="toggleDarkMode()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-info">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+              </svg>
+              <span>Email Notifications</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="emailNotifications" (change)="toggleEmailNotifications()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-info">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+              </svg>
+              <span>Compact View</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" [(ngModel)]="compactView" (change)="toggleCompactView()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-divider"></div>
+        <div class="settings-section">
+          <button class="settings-action" (click)="showAccountInfo()">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+            </svg>
+            <span>Account Information</span>
+          </button>
+          <button class="settings-action" (click)="clearLocalData()">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+            </svg>
+            <span>Clear Local Data</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="user-menu">
+      <button class="avatar-btn" title="{{ authService.getUsername() }}">
+        <span class="avatar">{{ getAvatarInitials() }}</span>
+      </button>
+      <div class="user-dropdown">
+        <div class="dropdown-header">
+          <span class="avatar avatar-large">{{ getAvatarInitials() }}</span>
+          <div class="user-details">
+            <span class="user-name">{{ getUserDisplayName() }}</span>
+            <span class="user-email">{{ authService.getUsername() }}</span>
+          </div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item" (click)="onLogout()">
+          <svg viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+          </svg>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Help Modal -->
+<div class="modal-overlay" *ngIf="showHelpModal" (click)="closeHelpModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <span class="modal-icon">📧</span>
+        THM Mail-System
+      </h2>
+      <button class="modal-close-btn" (click)="closeHelpModal()">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="about-section">
+        <h3>About</h3>
+        <p>THM Mail-System is a full-stack email management application developed as a university project for the Web Technologies course.</p>
+      </div>
+
+      <div class="about-section">
+        <h3>Features</h3>
+        <ul>
+          <li>📥 <strong>Inbox Management</strong> - View and organize your emails</li>
+          <li>✍️ <strong>Compose</strong> - Create and send new emails</li>
+          <li>⭐ <strong>Star & Mark</strong> - Mark important emails</li>
+          <li>📝 <strong>Drafts</strong> - Save emails for later</li>
+          <li>🔍 <strong>Search</strong> - Find emails quickly</li>
+          <li>🔒 <strong>JWT Authentication</strong> - Secure login</li>
+        </ul>
+      </div>
+
+      <div class="about-section">
+        <h3>Technology Stack</h3>
+        <div class="tech-stack">
+          <div class="tech-item">
+            <strong>Frontend:</strong> Angular 19, TypeScript
+          </div>
+          <div class="tech-item">
+            <strong>Backend:</strong> Spring Boot 4, Kotlin
+          </div>
+          <div class="tech-item">
+            <strong>Database:</strong> H2 (In-memory)
+          </div>
+          <div class="tech-item">
+            <strong>Security:</strong> JWT Authentication
+          </div>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>Account Info</h3>
+        <div class="account-info" *ngIf="authService.isLoggedIn()">
+          <p><strong>Logged in as:</strong> {{ authService.getUsername() }}</p>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <h3>Keyboard Shortcuts</h3>
+        <div class="shortcuts-list">
+          <div class="shortcut-item">
+            <kbd>Enter</kbd>
+            <span>Search</span>
+          </div>
+          <div class="shortcut-item">
+            <kbd>Esc</kbd>
+            <span>Close dialogs</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span class="version">Version 1.0.0</span>
+      <button class="btn-primary" (click)="closeHelpModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Advanced Search Overlay -->
+<div class="advanced-search-overlay" *ngIf="showAdvancedSearch">
+  <div class="advanced-search-backdrop" (click)="toggleAdvancedSearch()"></div>
+  <div class="advanced-search-panel">
+    <div class="advanced-search-header">
+      <h3>Advanced Search</h3>
+      <button class="close-btn" (click)="toggleAdvancedSearch()" type="button">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="advanced-search-body">
+      <div class="search-field">
+        <label for="search-from">From</label>
+        <input type="text" id="search-from" [(ngModel)]="advancedFilters.from" placeholder="e.g. admin&#64;thm.de">
+      </div>
+      <div class="search-field">
+        <label for="search-to">To</label>
+        <input type="text" id="search-to" [(ngModel)]="advancedFilters.to" placeholder="e.g. student&#64;thm.de">
+      </div>
+      <div class="search-field">
+        <label for="search-subject">Subject</label>
+        <input type="text" id="search-subject" [(ngModel)]="advancedFilters.subject" placeholder="Enter subject keywords">
+      </div>
+      <div class="search-field">
+        <label for="search-words">Has the words</label>
+        <input type="text" id="search-words" [(ngModel)]="advancedFilters.hasWords" placeholder="Enter words to search">
+      </div>
+      <div class="search-field checkbox-field">
+        <label>
+          <input type="checkbox" [(ngModel)]="advancedFilters.hasAttachment">
+          Has attachment
+        </label>
+      </div>
+    </div>
+    <div class="advanced-search-footer">
+      <button class="btn-secondary" type="button" (click)="resetAdvancedFilters()">Reset</button>
+      <button class="btn-primary" type="button" (click)="applyAdvancedSearch()">Search</button>
+    </div>
+  </div>
+</div>
+
+<main class="app-container" [class.full-height]="router.url === '/login'" [class.sidebar-collapsed]="sidebarCollapsed" [class.compact-view]="compactView">
+  <router-outlet></router-outlet>
+</main>
+
+<!-- Account Information Modal -->
+<div class="modal-overlay" *ngIf="showAccountModal" (click)="closeAccountModal()">
+  <div class="modal-container account-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <span class="modal-icon">👤</span>
+        Account Information
+      </h2>
+      <button class="modal-close-btn" (click)="closeAccountModal()">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="account-avatar-section">
+        <span class="avatar avatar-xlarge">{{ getAvatarInitials() }}</span>
+      </div>
+      <div class="account-details-section">
+        <div class="account-detail-item">
+          <span class="detail-label">Name</span>
+          <span class="detail-value">{{ getUserDisplayName() }}</span>
+        </div>
+        <div class="account-detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ authService.getUsername() }}</span>
+        </div>
+        <div class="account-detail-item">
+          <span class="detail-label">Status</span>
+          <span class="detail-value status-active">
+            <span class="status-dot"></span>
+            Active
+          </span>
+        </div>
+        <div class="account-detail-item">
+          <span class="detail-label">Role</span>
+          <span class="detail-value">User</span>
+        </div>
+        <div class="account-detail-item">
+          <span class="detail-label">Last Login</span>
+          <span class="detail-value">{{ getCurrentDate() }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeAccountModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="modal-overlay confirm-overlay" *ngIf="showConfirmDialog" (click)="cancelConfirm()">
+  <div class="confirm-dialog" (click)="$event.stopPropagation()">
+    <div class="confirm-icon">
+      <svg viewBox="0 0 24 24" width="48" height="48">
+        <path fill="#f59e0b" d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+      </svg>
+    </div>
+    <h3>Confirm Action</h3>
+    <p>{{ confirmMessage }}</p>
+    <div class="confirm-actions">
+      <button class="btn-secondary" (click)="cancelConfirm()">Cancel</button>
+      <button class="btn-danger" (click)="confirmAction()">Clear Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-notification" [class.show]="showToast">
+  <svg viewBox="0 0 24 24" width="20" height="20">
+    <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+  </svg>
+  <span>{{ toastMessage }}</span>
+</div>
+
+
