@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
 })
 export class AuthService {
   /** Base URL for authentication endpoints. */
-  private authUrl = '${environment.apiUrl}/api/auth';
+  private authUrl = 'https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/auth';
   /** Key name for the token in LocalStorage. */
   private readonly TOKEN_KEY = 'auth_token';
 
@@ -89,7 +89,5 @@ export class AuthService {
   public getCurrentUserEmail(): string | null {
     return localStorage.getItem('auth_username');
   }
-  
-  private apiUrl = 'https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/auth';
 }
 
