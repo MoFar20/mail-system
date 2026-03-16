@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
 })
 export class AuthService {
   /** Base URL for authentication endpoints. */
-  private authUrl = 'http://localhost:8080/api/auth';
+  private authUrl = '${environment.apiUrl}/api/auth';
   /** Key name for the token in LocalStorage. */
   private readonly TOKEN_KEY = 'auth_token';
 
