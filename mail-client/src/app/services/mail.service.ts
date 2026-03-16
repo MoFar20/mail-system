@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Mail, AttachmentMetadata } from '../models/mail.model';
+import { environment } from '../../environments/environment';
 
 /**
  * Service for managing emails via the REST API.
@@ -144,5 +145,7 @@ export class MailService {
   public deleteAttachment(mailId: number, attachmentId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${mailId}/attachments/${attachmentId}`);
   }
+
+  private apiUrl = `${environment.apiUrl}/api/mails`;
 }
 
