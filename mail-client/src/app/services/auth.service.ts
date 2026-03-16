@@ -90,6 +90,6 @@ export class AuthService {
     return localStorage.getItem('auth_username');
   }
   
-  private apiUrl = `${environment.apiUrl}/api/auth`;
+  private apiUrl = 'https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/auth';
 }
 
