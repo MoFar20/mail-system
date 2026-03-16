@@ -145,7 +145,5 @@ export class MailService {
   public deleteAttachment(mailId: number, attachmentId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${mailId}/attachments/${attachmentId}`);
   }
-
-  private apiUrl = `${environment.apiUrl}/api/mails`;
 }
 
