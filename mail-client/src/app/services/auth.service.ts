@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 /**
  * Service for handling authentication.
  * Manages the login, registration, and JWT token storage in local storage.
@@ -89,5 +89,7 @@ export class AuthService {
   public getCurrentUserEmail(): string | null {
     return localStorage.getItem('auth_username');
   }
+  
+  private apiUrl = `${environment.apiUrl}/api/auth`;
 }
 
