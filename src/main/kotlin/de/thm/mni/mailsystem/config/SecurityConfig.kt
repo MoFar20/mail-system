@@ -47,18 +47,13 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
     @Bean
 fun filterChain(http: HttpSecurity): SecurityFilterChain {
     http
-        // 1. Link the CORS configuration source immediately
         .cors { it.configurationSource(corsConfigurationSource()) }
         .csrf { it.disable() }
         .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         .authorizeHttpRequests { auth ->
-            // 2. EXPLICITLY ALLOW PREFLIGHT (OPTIONS)
             auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-            
-            // 3. ALLOW AUTH ENDPOINTS
             auth.requestMatchers("/api/auth/**").permitAll()
             auth.requestMatchers("/h2-console/**").permitAll()
-            
             auth.anyRequest().authenticated()
         }
         .headers { it.frameOptions { it.sameOrigin() } }
