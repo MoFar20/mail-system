@@ -8,6 +8,9 @@ export interface Mail {
   recipient: string;
   subject: string;
   body: string;
+  content?: string;   
+  status?: string;   
+  source?: string;    
   timestamp?: string;
   read?: boolean;
   starred?: boolean;
