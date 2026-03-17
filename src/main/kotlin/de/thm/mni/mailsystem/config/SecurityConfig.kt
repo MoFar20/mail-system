@@ -45,36 +45,27 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
      * @return The configured SecurityFilterChain.
      */
     @Bean
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        http
-            .cors { it.configurationSource(corsConfigurationSource()) }
-            .csrf { it.disable() }
-            .sessionManagement { session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
-            .securityContext { context ->
-                context.requireExplicitSave(false)
-            }
-            .exceptionHandling { exceptions ->
-                exceptions.authenticationEntryPoint { request, response, authException ->
-                    logger.warn("Authentication failed for {}: {}", request.requestURI, authException?.message)
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException?.message ?: "Unauthorized")
-                }
-            }
-            .authorizeHttpRequests { auth ->
-                auth
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/h2-console/**").permitAll()
-                    auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                    .anyRequest().authenticated()
-            }
-            .headers { headers ->
-                headers.frameOptions { it.sameOrigin() } // Required for H2 Console
-            }
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    http
+        // 1. Link the CORS configuration source immediately
+        .cors { it.configurationSource(corsConfigurationSource()) }
+        .csrf { it.disable() }
+        .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+        .authorizeHttpRequests { auth ->
+            // 2. EXPLICITLY ALLOW PREFLIGHT (OPTIONS)
+            auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+            
+            // 3. ALLOW AUTH ENDPOINTS
+            auth.requestMatchers("/api/auth/**").permitAll()
+            auth.requestMatchers("/h2-console/**").permitAll()
+            
+            auth.anyRequest().authenticated()
+        }
+        .headers { it.frameOptions { it.sameOrigin() } }
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
-        return http.build()
-    }
+    return http.build()
+}
 
     /**
      * Configures CORS to allow requests from the Angular frontend.
