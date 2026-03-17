@@ -78,8 +78,7 @@ fun corsConfigurationSource(): CorsConfigurationSource {
     
     // Add ALL potential Vercel URLs (No trailing slashes!)
     configuration.allowedOrigins = listOf(
-        "https://mail-system-rcgk93ftp-mofar20s-projects.vercel.app", // The one from your error
-        "https://mail-system-pru6fm4ds-mofar20s-projects.vercel.app", // Your previous one
+        "https://*.vercel.app"
         "http://localhost:4200"
     )
     
