@@ -60,6 +60,10 @@ class JwtAuthenticationFilter(
         filterChain: FilterChain
     ) {
         if (request.method == "OPTIONS") {
+            response.setHeader("Access-Control-Allow-Origin", "https://mail-system-black.vercel.app")
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+            response.setHeader("Access-Control-Allow-Headers", "*")
+            response.setHeader("Access-Control-Allow-Credentials", "true")
             response.status = HttpServletResponse.SC_OK
             return 
         }
