@@ -73,7 +73,7 @@ fun corsConfigurationSource(): CorsConfigurationSource {
     
     // Add ALL potential Vercel URLs (No trailing slashes!)
     configuration.allowedOrigins = listOf(
-        "https://*.vercel.app"
+        "https://*.vercel.app",
         "http://localhost:4200"
     )
     
