@@ -73,17 +73,23 @@ fun filterChain(http: HttpSecurity): SecurityFilterChain {
      * @return The CORS configuration source.
      */
     @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration().apply {
-            addAllowedOrigin("http://localhost:4200", "https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/")
-            addAllowedMethod("*")
-            addAllowedHeader("*")
-            exposedHeaders = listOf("Authorization", "Content-Type")
-            allowCredentials = true
-            maxAge = 3600L
-        }
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
-        return source
-    }
+fun corsConfigurationSource(): CorsConfigurationSource {
+    val configuration = CorsConfiguration()
+    
+    // Add ALL potential Vercel URLs (No trailing slashes!)
+    configuration.allowedOrigins = listOf(
+        "https://mail-system-rcgk93ftp-mofar20s-projects.vercel.app", // The one from your error
+        "https://mail-system-pru6fm4ds-mofar20s-projects.vercel.app", // Your previous one
+        "http://localhost:4200"
+    )
+    
+    configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+    configuration.allowedHeaders = listOf("*") // Use wildcard for headers to avoid mismatches
+    configuration.allowCredentials = true
+    configuration.exposedHeaders = listOf("Authorization")
+    
+    val source = UrlBasedCorsConfigurationSource()
+    source.registerCorsConfiguration("/**", configuration)
+    return source
+}
 }
