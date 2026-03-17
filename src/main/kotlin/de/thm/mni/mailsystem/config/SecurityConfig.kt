@@ -53,7 +53,6 @@ fun corsFilter(): org.springframework.web.filter.CorsFilter {
     config.allowCredentials = true
     config.allowedOriginPatterns = listOf(
         "https://*.vercel.app", 
-        "https://mail-system-black.vercel.app",
         "http://localhost:4200"
     )
     
