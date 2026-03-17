@@ -84,7 +84,7 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
-            addAllowedOrigin("http://localhost:4200", "https://mail-system-pru6fm4ds-mofar20s-projects.vercel.app")
+            addAllowedOrigin("http://localhost:4200", "https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/")
             addAllowedMethod("*")
             addAllowedHeader("*")
             exposedHeaders = listOf("Authorization", "Content-Type")
