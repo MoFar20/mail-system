@@ -9,8 +9,8 @@ export interface Mail {
   subject: string;
   body: string;
   content: string; 
-  status: 'DRAFT' | 'SENT' | 'ERROR';
-  source: string;
+  status: 'DRAFT' | 'SENT' | 'ERROR'; 
+  source: 'INTERN' | 'EXTERN';
   timestamp?: string;
   read?: boolean;
   starred?: boolean;
@@ -27,6 +27,7 @@ export interface AttachmentMetadata {
   providedIn: 'root'
 })
 export class MailService {
+  // Hardcoded for build stability
   private apiUrl = 'https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/mails';
 
   constructor(private http: HttpClient) { }
