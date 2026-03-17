@@ -13,7 +13,7 @@ import { environment } from '../../environments/environment';
 })
 export class MailService {
   /** Base URL of the API (Spring Boot Server). */
-  private apiUrl = '${environment.apiUrl}/api/mails';
+  private apiUrl = '${environment.apiUrl}/api/mails/inbox';
 
   /**
    * Creates an instance of MailService.
