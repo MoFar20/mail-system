@@ -2,58 +2,78 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface Mail {
+  id?: number;
+  sender: string;
+  recipient: string;
+  subject: string;
+  body: string;
+  timestamp?: string;
+  read?: boolean;
+  starred?: boolean;
+}
+
+export interface AttachmentMetadata {
+  id: number;
+  filename: string;
+  contentType: string;
+  size: number;
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
 export class MailService {
+  // Hardcoded to bypass environment variable resolution issues during build
   private apiUrl = 'https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/mails';
 
   constructor(private http: HttpClient) { }
 
-  public getMails(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  public getMails(): Observable<Mail[]> {
+    return this.http.get<Mail[]>(this.apiUrl);
   }
 
-  public getInbox(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/inbox`);
+  public getInbox(): Observable<Mail[]> {
+    return this.http.get<Mail[]>(`${this.apiUrl}/inbox`);
   }
 
-  public getSentMails(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/sent`);
+  public getSentMails(): Observable<Mail[]> {
+    return this.http.get<Mail[]>(`${this.apiUrl}/sent`);
   }
 
-  public getDrafts(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/drafts`);
+  public getDrafts(): Observable<Mail[]> {
+    return this.http.get<Mail[]>(`${this.apiUrl}/drafts`);
   }
 
-  public getMail(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  public getMail(id: number): Observable<Mail> {
+    return this.http.get<Mail>(`${this.apiUrl}/${id}`);
   }
 
-  public createMail(mail: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, mail);
+  public createMail(mail: Partial<Mail>): Observable<Mail> {
+    return this.http.post<Mail>(this.apiUrl, mail);
   }
 
-  public updateMail(id: number, mail: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, mail);
+  public updateMail(id: number, mail: Partial<Mail>): Observable<Mail> {
+    return this.http.put<Mail>(`${this.apiUrl}/${id}`, mail);
   }
 
   public deleteMail(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  public sendMail(id: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${id}/send`, {});
+  public sendMail(id: number): Observable<Mail> {
+    return this.http.post<Mail>(`${this.apiUrl}/${id}/send`, {});
   }
 
-  public getAttachments(mailId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/${mailId}/attachments`);
+  public getAttachments(mailId: number): Observable<AttachmentMetadata[]> {
+    return this.http.get<AttachmentMetadata[]>(`${this.apiUrl}/${mailId}/attachments`);
   }
 
-  public uploadAttachment(mailId: number, file: File): Observable<any> {
+  public uploadAttachment(mailId: number, file: File): Observable<Mail> {
     const formData = new FormData();
     formData.append('file', file, file.name);
-    return this.http.post<any>(`${this.apiUrl}/${mailId}/attachments`, formData);
+    return this.http.post<Mail>(`${this.apiUrl}/${mailId}/attachments`, formData);
   }
 
   public downloadAttachment(mailId: number, attachmentId: number): Observable<Blob> {
