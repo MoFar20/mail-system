@@ -3,15 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Mail {
-  id?: number;
+  id: number;          
   sender: string;
   recipient: string;
   subject: string;
   body: string;
-  content?: string;   
-  status?: string;   
-  source?: string;    
-  timestamp?: string;
+  content: string;     
+  status: string;      
+  source: string;      
+  timestamp?: string;  
   read?: boolean;
   starred?: boolean;
 }
@@ -22,7 +22,6 @@ export interface AttachmentMetadata {
   contentType: string;
   size: number;
 }
-
 
 @Injectable({
   providedIn: 'root'
