@@ -44,43 +44,33 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
      * @param http The HttpSecurity builder.
      * @return The configured SecurityFilterChain.
      */
-    @Bean
+@Bean
 fun filterChain(http: HttpSecurity): SecurityFilterChain {
     http
         .cors { it.configurationSource(corsConfigurationSource()) }
         .csrf { it.disable() }
-        .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
         .authorizeHttpRequests { auth ->
             auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
             auth.requestMatchers("/api/auth/**").permitAll()
-            auth.requestMatchers("/h2-console/**").permitAll()
             auth.anyRequest().authenticated()
         }
-        .headers { it.frameOptions { it.sameOrigin() } }
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
     return http.build()
 }
 
-    /**
-     * Configures CORS to allow requests from the Angular frontend.
-     *
-     * @return The CORS configuration source.
-     */
-    @Bean
+@Bean
 fun corsConfigurationSource(): CorsConfigurationSource {
     val configuration = CorsConfiguration()
-    
-    // Add ALL potential Vercel URLs (No trailing slashes!)
-    configuration.allowedOrigins = listOf(
+        configuration.allowedOriginPatterns = listOf(
         "https://*.vercel.app",
         "http://localhost:4200"
     )
     
     configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-    configuration.allowedHeaders = listOf("*") // Use wildcard for headers to avoid mismatches
+    configuration.allowedHeaders = listOf("*")
     configuration.allowCredentials = true
-    configuration.exposedHeaders = listOf("Authorization")
+    configuration.exposedHeaders = listOf("Authorization", "Content-Type")
     
     val source = UrlBasedCorsConfigurationSource()
     source.registerCorsConfiguration("/**", configuration)
