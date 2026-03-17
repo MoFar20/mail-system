@@ -59,6 +59,10 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
+        if (request.method == "OPTIONS") {
+            response.status = HttpServletResponse.SC_OK
+            return 
+        }
         try {
             logger.debug("Processing request: {} {}", request.method, request.requestURI)
 
