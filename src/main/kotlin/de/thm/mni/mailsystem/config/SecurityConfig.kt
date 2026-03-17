@@ -51,10 +51,15 @@ fun corsFilter(): org.springframework.web.filter.CorsFilter {
     val config = CorsConfiguration()
     
     config.allowCredentials = true
-    config.allowedOriginPatterns = listOf("https://*.vercel.app", "http://localhost:4200")
+    config.allowedOriginPatterns = listOf(
+        "https://*.vercel.app", 
+        "https://mail-system-black.vercel.app",
+        "http://localhost:4200"
+    )
+    
     config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
     config.allowedHeaders = listOf("*")
-    config.exposedHeaders = listOf("Authorization", "Content-Type")
+    config.exposedHeaders = listOf("Authorization", "Content-Type", "Link", "X-Total-Count")
     
     source.registerCorsConfiguration("/**", config)
     return org.springframework.web.filter.CorsFilter(source)
