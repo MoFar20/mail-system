@@ -2,8 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-
-// Make sure these paths match your actual project structure
 import { Mail } from '../models/mail.model'; 
 import { AttachmentMetadata } from '../models/attachment.model';
 
