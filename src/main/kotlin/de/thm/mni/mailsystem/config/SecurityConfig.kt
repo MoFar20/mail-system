@@ -65,6 +65,7 @@ fun corsConfigurationSource(): CorsConfigurationSource {
     val configuration = CorsConfiguration()
         configuration.allowedOriginPatterns = listOf(
         "https://*.vercel.app",
+        "https://mail-system-black.vercel.app",
         "http://localhost:4200"
     )
     
