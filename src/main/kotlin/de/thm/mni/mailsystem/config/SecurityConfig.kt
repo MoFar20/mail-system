@@ -68,7 +68,7 @@ fun corsConfigurationSource(): CorsConfigurationSource {
     )
     
     configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-    configuration.allowedHeaders = listOf("*")
+    configuration.allowedHeaders = listOf("Authorization", "Content-Type", "Accept", "X-Requested-With")
     configuration.allowCredentials = true
     configuration.exposedHeaders = listOf("Authorization", "Content-Type")
     
