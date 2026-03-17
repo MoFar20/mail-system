@@ -45,16 +45,26 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
      * @return The configured SecurityFilterChain.
      */
 @Bean
+fun corsFilter(): org.springframework.web.filter.CorsFilter {
+    val source = UrlBasedCorsConfigurationSource()
+    val config = CorsConfiguration()
+    
+    config.allowCredentials = true
+    config.allowedOriginPatterns = listOf("https://*.vercel.app", "http://localhost:4200")
+    config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+    config.allowedHeaders = listOf("*")
+    config.exposedHeaders = listOf("Authorization", "Content-Type")
+    
+    source.registerCorsConfiguration("/**", config)
+    return org.springframework.web.filter.CorsFilter(source)
+}
+
+@Bean
 fun filterChain(http: HttpSecurity): SecurityFilterChain {
     http
-        .cors { it.configurationSource(corsConfigurationSource()) }
+        .cors { } 
         .csrf { it.disable() }
         .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-        .exceptionHandling { exceptions ->
-            exceptions.authenticationEntryPoint { request, response, _ ->
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
-            }
-        }
         .authorizeHttpRequests { auth ->
             auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
             auth.requestMatchers("/api/auth/**").permitAll()
@@ -64,38 +74,5 @@ fun filterChain(http: HttpSecurity): SecurityFilterChain {
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
     return http.build()
-}
-
-@Bean
-fun corsConfigurationSource(): CorsConfigurationSource {
-    val configuration = CorsConfiguration()
-        configuration.allowedOriginPatterns = listOf(
-        "https://*.vercel.app",
-        "https://mail-system-black.vercel.app",
-        "http://localhost:4200"
-    )
-    
-    configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-    configuration.allowedHeaders = listOf("Authorization", "Content-Type", "Accept", "X-Requested-With")
-    configuration.allowCredentials = true
-    configuration.exposedHeaders = listOf("Authorization", "Content-Type")
-    
-    val source = UrlBasedCorsConfigurationSource()
-    source.registerCorsConfiguration("/**", configuration)
-    return source
-}
-
-@Bean
-fun corsFilter(): org.springframework.web.filter.CorsFilter {
-    val source = UrlBasedCorsConfigurationSource()
-    val config = CorsConfiguration().apply {
-        allowCredentials = true
-        allowedOriginPatterns = listOf("https://*.vercel.app", "http://localhost:4200")
-        allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-        allowedHeaders = listOf("*")
-        exposedHeaders = listOf("Authorization", "Content-Type")
-    }
-    source.registerCorsConfiguration("/**", config)
-    return org.springframework.web.filter.CorsFilter(source)
 }
 }
