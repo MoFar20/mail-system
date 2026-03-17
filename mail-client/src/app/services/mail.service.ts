@@ -3,15 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Mail {
-  id: number;          
+  id: number;
   sender: string;
   recipient: string;
   subject: string;
   body: string;
-  content: string;     
-  status: string;      
-  source: string;      
-  timestamp?: string;  
+  content: string; 
+  status: 'DRAFT' | 'SENT' | 'ERROR';
+  source: string;
+  timestamp?: string;
   read?: boolean;
   starred?: boolean;
 }
@@ -27,7 +27,6 @@ export interface AttachmentMetadata {
   providedIn: 'root'
 })
 export class MailService {
-  // Hardcoded to bypass environment variable resolution issues during build
   private apiUrl = 'https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/mails';
 
   constructor(private http: HttpClient) { }
