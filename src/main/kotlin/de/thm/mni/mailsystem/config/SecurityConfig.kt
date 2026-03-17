@@ -50,10 +50,11 @@ fun filterChain(http: HttpSecurity): SecurityFilterChain {
         .cors { it.configurationSource(corsConfigurationSource()) }
         .csrf { it.disable() }
         .authorizeHttpRequests { auth ->
-            auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-            auth.requestMatchers("/api/auth/**").permitAll()
-            auth.anyRequest().authenticated()
-        }
+        auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+        auth.requestMatchers("/api/auth/**").permitAll()
+        auth.requestMatchers("/actuator/**").permitAll()    
+        auth.anyRequest().authenticated()
+}
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
     return http.build()
