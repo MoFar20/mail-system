@@ -13,8 +13,7 @@ import { environment } from '../../environments/environment';
 })
 export class MailService {
   /** Base URL of the API (Spring Boot Server). */
-  private apiUrl = 'https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/mails/inbox';
-
+   return this.http.get('https://remarkable-jeanne-thmdms-34e6c67e.koyeb.app/api/mails/inbox');
   /**
    * Creates an instance of MailService.
    * @param http The Angular HttpClient for API requests.
