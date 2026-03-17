@@ -65,7 +65,7 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
                 auth
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated()
             }
             .headers { headers ->
