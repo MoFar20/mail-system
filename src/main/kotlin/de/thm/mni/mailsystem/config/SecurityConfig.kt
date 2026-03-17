@@ -70,6 +70,7 @@ fun filterChain(http: HttpSecurity): SecurityFilterChain {
             auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
             auth.requestMatchers("/api/auth/**").permitAll()
             auth.requestMatchers("/actuator/**").permitAll()
+            auth.requestMatchers("/").permitAll()
             auth.anyRequest().authenticated()
         }
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
