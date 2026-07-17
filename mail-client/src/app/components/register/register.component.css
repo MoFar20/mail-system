@@ -4,34 +4,35 @@
   justify-content: center;
   align-items: center;
   background: #ffffff;
-  padding: 20px;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .register-card {
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+  padding: 28px 32px;
   max-width: 450px;
   width: 100%;
 }
 
 .register-card h1 {
-  margin: 0 0 10px 0;
+  margin: 0 0 6px 0;
   color: #333;
-  font-size: 28px;
+  font-size: 22px;
   text-align: center;
 }
 
 .subtitle {
   text-align: center;
   color: #666;
-  margin-bottom: 30px;
-  font-size: 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 13px;
 }
 
 .form-group label {
@@ -44,7 +45,7 @@
 
 .form-control {
   width: 100%;
-  padding: 12px 15px;
+  padding: 9px 12px;
   border: 2px solid #e0e0e0;
   border-radius: 8px;
   font-size: 14px;
@@ -122,10 +123,10 @@
 }
 
 .btn {
-  padding: 12px 24px;
+  padding: 10px 24px;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
@@ -154,8 +155,8 @@
 
 .login-link {
   text-align: center;
-  margin-top: 25px;
-  font-size: 14px;
+  margin-top: 16px;
+  font-size: 13px;
   color: #666;
 }
 

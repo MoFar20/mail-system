@@ -24,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = ["http://localhost:4200"])
+@CrossOrigin // No need for specific origin since frontend and backend are on the same port now
 class AuthController(
     private val userRepository: UserRepository,
     private val passwordEncoder: BCryptPasswordEncoder,
@@ -39,20 +39,20 @@ class AuthController(
      * is hashed using BCrypt before storage. The email must be unique.
      * Emails are stored in lowercase for case-insensitive comparison.
      *
-     * @param registerRequest Registration data containing username and password.
-     * @return RegisterResponse with success message and username.
-     * @throws ResponseStatusException with CONFLICT if username already exists.
+     * @param registerRequest Registration data containing mail, firstname, lastname, and password.
+     * @return RegisterResponse with success message and mail.
+     * @throws ResponseStatusException with CONFLICT if mail already exists.
      * @throws ResponseStatusException with BAD_REQUEST if validation fails.
      */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     fun register(@Valid @RequestBody registerRequest: RegisterRequest): RegisterResponse {
         // Normalize email to lowercase for case-insensitive comparison
-        val normalizedEmail = registerRequest.username.lowercase()
+        val normalizedEmail = registerRequest.mail.lowercase()
 
         // Check if user already exists (case-insensitive)
-        if (userRepository.findByUsername(normalizedEmail).isPresent) {
-            logger.warn("Registration attempt with existing username: {}", normalizedEmail)
+        if (userRepository.findByMail(normalizedEmail).isPresent) {
+            logger.warn("Registration attempt with existing mail: {}", normalizedEmail)
             throw ResponseStatusException(
                 HttpStatus.CONFLICT,
                 "An account with this email address already exists"
@@ -64,7 +64,9 @@ class AuthController(
             ?: throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Password encoding failed")
 
         val newUser = User(
-            username = normalizedEmail,  // Store email in lowercase
+            firstname = registerRequest.firstname,
+            lastname = registerRequest.lastname,
+            mail = normalizedEmail,
             passwordHash = hashedPassword
         )
 
@@ -73,45 +75,45 @@ class AuthController(
 
         return RegisterResponse(
             message = "Account created successfully. You can now log in.",
-            username = normalizedEmail
+            mail = normalizedEmail
         )
     }
 
     /**
      * Authenticates a user and returns a JWT token.
      *
-     * Validates the provided username and password against the database.
+     * Validates the provided mail and password against the database.
      * If credentials are valid, generates and returns a JWT token.
      * Email comparison is case-insensitive.
      *
-     * @param loginRequest Map containing "username" and "password" keys.
+     * @param loginRequest Map containing "mail" and "password" keys.
      * @return Map containing the JWT token with key "token".
-     * @throws ResponseStatusException with BAD_REQUEST if username or password is missing.
+     * @throws ResponseStatusException with BAD_REQUEST if mail or password is missing.
      * @throws ResponseStatusException with UNAUTHORIZED if credentials are invalid.
      */
     @PostMapping("/login")
     fun login(@RequestBody loginRequest: Map<String, String>): Map<String, String> {
-        val username = loginRequest["username"]
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is required")
+        val mail = loginRequest["mail"]
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Mail is required")
 
         // Normalize email to lowercase for case-insensitive comparison
-        val normalizedEmail = username.lowercase()
+        val normalizedEmail = mail.lowercase()
         val password = loginRequest["password"]
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Password is required")
 
-        val user = userRepository.findByUsername(normalizedEmail)
+        val user = userRepository.findByMail(normalizedEmail)
             .orElseThrow {
-                logger.warn("Login attempt with non-existent username: {}", normalizedEmail)
+                logger.warn("Login attempt with non-existent mail: {}", normalizedEmail)
                 ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
             }
 
         // Check password
         if (passwordEncoder.matches(password, user.passwordHash)) {
             val token = jwtUtils.generateToken(normalizedEmail)
-            logger.info("User logged in: {}", username)
+            logger.info("User logged in: {}", mail)
             return mapOf("token" to token)
         } else {
-            logger.warn("Login attempt with invalid password for user: {}", username)
+            logger.warn("Login attempt with invalid password for user: {}", mail)
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
         }
     }

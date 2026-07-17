@@ -48,7 +48,7 @@ export class LoginComponent implements OnDestroy {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      username: ['', [Validators.required, Validators.email]],
+      mail: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]]
     });
   }

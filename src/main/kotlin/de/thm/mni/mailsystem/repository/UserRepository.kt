@@ -14,10 +14,10 @@ import java.util.*
 @Repository
 interface UserRepository : JpaRepository<User, Long> {
     /**
-     * Finds a user by their username.
+     * Finds a user by their mail address.
      *
-     * @param username The username to search for.
+     * @param mail The mail address to search for.
      * @return Optional containing the User if found, empty Optional otherwise.
      */
-    fun findByUsername(username: String): Optional<User>
+    fun findByMail(mail: String): Optional<User>
 }

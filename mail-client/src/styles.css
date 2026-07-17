@@ -7,12 +7,14 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  /* overflow is managed per-container; auth pages need to scroll */
+  overflow: auto;
 }
 
 body {
@@ -97,7 +99,9 @@ button {
 }
 
 /* Input base reset */
-input, textarea, select {
+input,
+textarea,
+select {
   font-family: inherit;
   font-size: inherit;
 }
@@ -107,4 +111,3 @@ input, textarea, select {
   user-select: none;
   -webkit-user-select: none;
 }
-

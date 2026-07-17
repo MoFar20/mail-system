@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError, throwError } from 'rxjs';
-import { AuthCredentials, LoginResponse, RegisterResponse, ApiErrorResponse } from '../models/auth.dto';
+import { LoginCredentials, RegisterCredentials, LoginResponse, RegisterResponse, ApiErrorResponse } from '../models/auth.dto';
 
 /**
  * Service for handling authentication.
@@ -31,7 +31,7 @@ export class AuthService {
    * @returns An Observable with the server response.
    * @throws Observable with user-friendly error message.
    */
-  public register(credentials: AuthCredentials): Observable<RegisterResponse> {
+  public register(credentials: RegisterCredentials): Observable<RegisterResponse> {
     return this.http.post<RegisterResponse>(`${this.authUrl}/register`, credentials).pipe(
       catchError((error: HttpErrorResponse) => {
         const userFriendlyError = this.handleAuthError(error);
@@ -47,7 +47,7 @@ export class AuthService {
    * @returns An Observable with the server response (contains the token).
    * @throws Observable with user-friendly error message.
    */
-  public login(credentials: AuthCredentials): Observable<LoginResponse> {
+  public login(credentials: LoginCredentials): Observable<LoginResponse> {
     // Clear any old tokens before login
     this.logout();
 
@@ -55,7 +55,7 @@ export class AuthService {
       tap(response => {
         if (response.token) {
           localStorage.setItem(this.TOKEN_KEY, response.token);
-          localStorage.setItem(this.USERNAME_KEY, credentials.username);
+          localStorage.setItem(this.USERNAME_KEY, credentials.mail);
         }
       }),
       catchError((error: HttpErrorResponse) => {

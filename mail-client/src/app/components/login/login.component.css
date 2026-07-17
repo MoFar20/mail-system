@@ -7,13 +7,16 @@
   min-height: 100vh;
   width: 100%;
   background-color: #fff;
-  padding: 24px;
+  padding: 16px 24px 56px;
+  /* bottom pad accounts for footer */
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .login-card {
   width: 100%;
-  max-width: 450px;
-  padding: 48px 40px 36px;
+  max-width: 440px;
+  padding: 32px 36px 28px;
   border: 1px solid #dadce0;
   border-radius: 8px;
   text-align: center;
@@ -21,7 +24,7 @@
 
 /* Logo Section */
 .logo-section {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .google-logo {
@@ -29,19 +32,19 @@
 }
 
 .logo-icon {
-  font-size: 48px;
+  font-size: 36px;
 }
 
 .logo-section h1 {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 400;
   color: #202124;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   font-family: 'Google Sans', 'Roboto', Arial, sans-serif;
 }
 
 .subtitle {
-  font-size: 16px;
+  font-size: 14px;
   color: #5f6368;
   margin: 0;
   font-weight: 400;
@@ -78,16 +81,16 @@ form {
 /* Floating Label Input Container */
 .input-container {
   position: relative;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .input-container input {
   width: 100%;
-  height: 56px;
-  padding: 13px 15px;
+  height: 46px;
+  padding: 10px 15px;
   border: 1px solid #dadce0;
   border-radius: 4px;
-  font-size: 16px;
+  font-size: 15px;
   color: #202124;
   background: transparent;
   outline: none;
@@ -99,7 +102,7 @@ form {
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 16px;
+  font-size: 15px;
   color: #5f6368;
   background: white;
   padding: 0 4px;
@@ -178,10 +181,10 @@ form {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px;
+  padding: 12px 14px;
   background-color: #e8f0fe;
   border-radius: 8px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   text-align: left;
 }
 
@@ -207,7 +210,7 @@ form {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 32px;
+  margin-top: 20px;
 }
 
 .btn-secondary {
@@ -266,7 +269,9 @@ form {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Footer */
@@ -275,7 +280,7 @@ form {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 24px;
+  padding: 10px 24px;
   background-color: #f8f9fa;
   border-top: 1px solid #e8eaed;
 }
@@ -325,4 +330,3 @@ form {
     margin-top: 24px;
   }
 }
-

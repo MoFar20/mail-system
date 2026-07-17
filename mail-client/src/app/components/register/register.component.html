@@ -15,17 +15,45 @@
 
     <!-- Registration Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+
+      <!-- First Name Field -->
       <div class="form-group">
-        <label for="username">Email Address</label>
+        <label for="firstname">First Name</label>
         <input
-          id="username"
+          id="firstname"
+          type="text"
+          formControlName="firstname"
+          class="form-control"
+          placeholder="First Name"
+          [class.invalid]="registerForm.get('firstname')?.invalid && registerForm.get('firstname')?.touched"
+        />
+      </div>
+
+      <!--Last Name Field -->
+      <div class="form-group">
+        <label for="lastname">Last Name</label>
+        <input
+          id="lastname"
+          type="text"
+          formControlName="lastname"
+          class="form-control"
+          placeholder="Last Name"
+          [class.invalid]="registerForm.get('lastname')?.invalid && registerForm.get('lastname')?.touched"
+        />
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="mail">Email Address</label>
+        <input
+          id="mail"
           type="email"
-          formControlName="username"
+          formControlName="mail"
           class="form-control"
           placeholder="your.email@example.com"
-          [class.invalid]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched"
+          [class.invalid]="registerForm.get('mail')?.invalid && registerForm.get('mail')?.touched"
         />
-        <small class="error-text" *ngIf="registerForm.get('username')?.hasError('email') && registerForm.get('username')?.touched">
+        <small class="error-text" *ngIf="registerForm.get('mail')?.hasError('email') && registerForm.get('mail')?.touched">
           Please enter a valid email address
         </small>
       </div>

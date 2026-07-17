@@ -370,7 +370,7 @@ class MailService(private val mailRepository: MailRepository) {
      *
      * @see Mail.MailStatus
      */
-    @Transactional
+@Transactional
     fun sendMail(id: Long): MailDto {
         val mail = mailRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
@@ -379,14 +379,8 @@ class MailService(private val mailRepository: MailRepository) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only mails with status DRAFT can be sent.")
         }
 
-        val isSuccessful = Random.nextInt(1, 11) <= 9
-
-        if (isSuccessful) {
-            mail.status = Mail.MailStatus.SENT
-            mail.sentAt = LocalDateTime.now()
-        } else {
-            mail.status = Mail.MailStatus.ERROR
-        }
+        mail.status = Mail.MailStatus.SENT
+        mail.sentAt = LocalDateTime.now()
 
         return mailRepository.save(mail).toDto()
     }
@@ -574,8 +568,8 @@ class MailService(private val mailRepository: MailRepository) {
      * **Logging:**
      * INFO level: Records which attachment deleted from which mail
      *
-     * @param mailId The mail's unique identifier
-     * @param attachmentId The attachment's unique identifier within the mail
+     * @param  mailId The mail's unique identifier
+     * @param  attachmentId The attachment's unique identifier within the mail
      * @throws ResponseStatusException HTTP 404 if mail not found
      * @throws ResponseStatusException HTTP 403 if mail not in DRAFT status
      * @throws ResponseStatusException HTTP 404 if attachment not found in mail

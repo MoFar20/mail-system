@@ -95,9 +95,9 @@ class DataSeeder(
     private fun seedUsers() {
         if (userRepository.count() == 0L) {
             val users = listOf(
-                User(username = "student@thm.de", passwordHash = passwordEncoder.encode("password123")!!),
-                User(username = "prof@thm.de", passwordHash = passwordEncoder.encode("password123")!!),
-                User(username = "admin@thm.de", passwordHash = passwordEncoder.encode("admin123")!!)
+                User(firstname = "Student", lastname = "User", mail = "student@thm.de", passwordHash = passwordEncoder.encode("password123")!!),
+                User(firstname = "Prof", lastname = "User", mail = "prof@thm.de", passwordHash = passwordEncoder.encode("password123")!!),
+                User(firstname = "Admin", lastname = "User", mail = "admin@thm.de", passwordHash = passwordEncoder.encode("admin123")!!)
             )
             userRepository.saveAll(users)
             logger.info("Created {} test users", users.size)

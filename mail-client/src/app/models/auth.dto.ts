@@ -4,20 +4,33 @@
  */
 
 /**
- * Credentials for login/registration requests
+ * Credentials for login requests (email + password only)
  */
-export interface AuthCredentials {
-  /** Email address (used as username) */
-  username: string;
-  /** User password */
+export interface LoginCredentials {
+  mail: string;
   password: string;
 }
+
+/**
+ * Credentials for registration requests (full user details)
+ */
+export interface RegisterCredentials {
+  firstname: string;
+  lastname: string;
+  mail: string;
+  password: string;
+}
+
+/**
+ * @deprecated Use LoginCredentials or RegisterCredentials instead.
+ * Kept for compatibility during migration.
+ */
+export interface AuthCredentials extends RegisterCredentials {}
 
 /**
  * Response from login endpoint
  */
 export interface LoginResponse {
-  /** JWT token for authenticated requests */
   token: string;
 }
 
@@ -25,9 +38,7 @@ export interface LoginResponse {
  * Response from registration endpoint
  */
 export interface RegisterResponse {
-  /** Success message from backend */
   message?: string;
-  /** JWT token (if auto-login is enabled) */
   token?: string;
 }
 
@@ -35,11 +46,8 @@ export interface RegisterResponse {
  * Standardized error response from API
  */
 export interface ApiErrorResponse {
-  /** Error message from server */
   message: string;
-  /** HTTP status code */
   status?: number;
-  /** Additional error details */
   details?: Record<string, any>;
 }
 

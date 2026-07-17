@@ -20,7 +20,7 @@ import { takeUntil } from 'rxjs/operators';
   styleUrl: './register.component.css'
 })
 export class RegisterComponent implements OnDestroy {
-  /** Registration form with username and password fields. */
+  /** Registration form with user details and password fields. */
   public registerForm: FormGroup;
   /** Error message to display if registration fails. */
   public errorMessage: string = '';
@@ -45,8 +45,11 @@ export class RegisterComponent implements OnDestroy {
     private authService: AuthService,
     private router: Router
   ) {
+    // ✅ Added firstname, lastname and changed username to mail
     this.registerForm = this.fb.group({
-      username: ['', [Validators.required, Validators.email]],
+      firstname: ['', [Validators.required]],
+      lastname: ['', [Validators.required]],
+      mail: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
     });
@@ -80,9 +83,13 @@ export class RegisterComponent implements OnDestroy {
 
     // Validate form
     if (this.registerForm.invalid) {
-      if (this.registerForm.get('username')?.hasError('required')) {
+      if (this.registerForm.get('firstname')?.hasError('required')) {
+        this.errorMessage = 'First name is required.';
+      } else if (this.registerForm.get('lastname')?.hasError('required')) {
+        this.errorMessage = 'Last name is required.';
+      } else if (this.registerForm.get('mail')?.hasError('required')) {
         this.errorMessage = 'Email address is required.';
-      } else if (this.registerForm.get('username')?.hasError('email')) {
+      } else if (this.registerForm.get('mail')?.hasError('email')) {
         this.errorMessage = 'Please enter a valid email address.';
       } else if (this.registerForm.get('password')?.hasError('required')) {
         this.errorMessage = 'Password is required.';
@@ -105,13 +112,15 @@ export class RegisterComponent implements OnDestroy {
     this.isLoading = true;
 
     const credentials = {
-      username: this.registerForm.value.username,
+      firstname: this.registerForm.value.firstname,
+      lastname: this.registerForm.value.lastname,
+      mail: this.registerForm.value.mail,
       password: this.registerForm.value.password
     };
 
     this.authService.register(credentials)
       .pipe(
-        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+        takeUntil(this.destroy$)  // Automatically unsubscribe on component destroy
       )
       .subscribe({
         next: (response) => {
