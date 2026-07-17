@@ -1,12 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 /**
  * Component for user registration.
  * Allows new users to create an account with email and password.
+ *
+ * Memory Management: Uses takeUntil pattern to prevent subscription leaks.
  */
 @Component({
   selector: 'app-register',
@@ -15,7 +19,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnDestroy {
   /** Registration form with username and password fields. */
   public registerForm: FormGroup;
   /** Error message to display if registration fails. */
@@ -26,6 +30,9 @@ export class RegisterComponent {
   public isLoading: boolean = false;
   /** Whether to show the password. */
   public showPassword: boolean = false;
+
+  /** Subject for managing observable unsubscriptions. */
+  private destroy$ = new Subject<void>();
 
   /**
    * Initializes the registration form with validators.
@@ -65,6 +72,7 @@ export class RegisterComponent {
   /**
    * Handles form submission for user registration.
    * Validates inputs and calls the auth service to register the user.
+   * Uses takeUntil pattern to prevent memory leaks.
    */
   public onRegister(): void {
     this.errorMessage = '';
@@ -101,29 +109,25 @@ export class RegisterComponent {
       password: this.registerForm.value.password
     };
 
-    this.authService.register(credentials).subscribe({
-      next: (response) => {
-        this.successMessage = '✅ Account created successfully! Redirecting to login...';
-        this.isLoading = false;
-        // Redirect to login after 2 seconds
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
-      },
-      error: (err) => {
-        this.isLoading = false;
-        // Extract error message from response
-        if (err.status === 409) {
-          this.errorMessage = '❌ An account with this email address already exists. Please login instead.';
-        } else if (err.error?.message) {
-          this.errorMessage = '❌ ' + err.error.message;
-        } else if (err.message) {
-          this.errorMessage = '❌ ' + err.message;
-        } else {
-          this.errorMessage = '❌ Registration failed. Please try again.';
+    this.authService.register(credentials)
+      .pipe(
+        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+      )
+      .subscribe({
+        next: (response) => {
+          this.successMessage = '✅ Account created successfully! Redirecting to login...';
+          this.isLoading = false;
+          // Redirect to login after 2 seconds
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 2000);
+        },
+        error: (err) => {
+          this.isLoading = false;
+          // Service now returns user-friendly error message
+          this.errorMessage = '❌ ' + (err.message || 'Registration failed. Please try again.');
         }
-      }
-    });
+      });
   }
 
   /**
@@ -131,5 +135,14 @@ export class RegisterComponent {
    */
   public goToLogin(): void {
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * Lifecycle hook: Clean up subscriptions to prevent memory leaks.
+   * The takeUntil operator handles subscription cleanup, but this ensures complete cleanup.
+   */
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

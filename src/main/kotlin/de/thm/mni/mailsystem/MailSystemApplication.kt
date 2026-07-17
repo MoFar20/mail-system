@@ -6,7 +6,7 @@ import org.springframework.boot.runApplication
 /**
  * Main application class for the THM Mail System.
  *
- * Bootstraps the Spring Boot application with auto-configuration,
+ * Bootstraps the Spring Boot application with Autoconfiguration,
  * component scanning, and JPA entity management.
  */
 @SpringBootApplication

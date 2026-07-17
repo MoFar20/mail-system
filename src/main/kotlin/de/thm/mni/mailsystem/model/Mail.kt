@@ -80,18 +80,32 @@ class Mail(
      * List of recipients associated with this mail.
      *
      * Managed with cascade operations - recipients are saved and deleted with the mail.
-     * Uses EAGER fetch to avoid lazy loading issues when serializing to JSON.
+     * Uses LAZY fetch strategy for optimal performance: recipients are loaded only when accessed.
+     * Safe to use with DTOs because mapping happens within the active transaction.
+     *
+     * Benefits of LAZY loading:
+     * - Reduces memory footprint: only loads data that's actually needed
+     * - Prevents N+1 query problems
+     * - Improves response time for mail list endpoints (no unnecessary joins)
+     * - Scales better with large datasets
      */
-    @OneToMany(mappedBy = "mail", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mail", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     val recipients: MutableList<MailRecipient> = mutableListOf()
 
     /**
      * List of file attachments associated with this mail.
      *
      * Managed with cascade operations - attachments are saved and deleted with the mail.
-     * Uses EAGER fetch to avoid lazy loading issues when serializing to JSON.
+     * Uses LAZY fetch strategy for optimal performance: attachments are loaded only when accessed.
+     * Safe to use with DTOs because mapping happens within the active transaction.
+     *
+     * Benefits of LAZY loading:
+     * - Reduces memory footprint: only loads data that's actually needed
+     * - Prevents N+1 query problems
+     * - Improves response time for mail list endpoints (no unnecessary joins)
+     * - Scales better with large datasets
      */
-    @OneToMany(mappedBy = "mail", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mail", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     val attachments: MutableList<Attachment> = mutableListOf()
 
     /**

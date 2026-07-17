@@ -2,9 +2,11 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MailService } from '../../services/mail.service';
+import { MailService, ServiceError } from '../../services/mail.service';
 import { AuthService } from '../../services/auth.service';
 import { Mail } from '../../models/mail.model';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 /**
  * Type definition for the different mail folder types.
@@ -67,6 +69,9 @@ export class MailListComponent implements OnInit, OnDestroy {
   /** Storage key for starred mail IDs. */
   private readonly STARRED_KEY = 'starred_mails';
 
+  /** Subject for managing observable unsubscriptions. */
+  private destroy$ = new Subject<void>();
+
   /**
    * Creates an instance of MailListComponent.
    * @param mailService Service for mail API communication.
@@ -81,6 +86,9 @@ export class MailListComponent implements OnInit, OnDestroy {
 
   /**
    * Initializes the component and loads inbox mails.
+   *
+   * ✅ FIXED: Event listeners are now properly bound to prevent memory leaks.
+   * Using arrow functions stored as properties instead of bind().
    */
   public ngOnInit(): void {
     this.currentUserEmail = this.authService.getCurrentUserEmail() || 'Unknown';
@@ -91,28 +99,50 @@ export class MailListComponent implements OnInit, OnDestroy {
     this.darkMode = localStorage.getItem('darkMode') === 'true';
 
     // Listen for search events from app component
-    window.addEventListener('mail-search', this.handleSearchEvent.bind(this));
+    window.addEventListener('mail-search', this.handleSearchEventBound);
 
     // Listen for sidebar toggle events
-    window.addEventListener('sidebar-toggle', this.handleSidebarToggle.bind(this));
+    window.addEventListener('sidebar-toggle', this.handleSidebarToggleBound);
 
     // Listen for compact view toggle events
-    window.addEventListener('compact-view-toggle', this.handleCompactViewToggle.bind(this));
+    window.addEventListener('compact-view-toggle', this.handleCompactViewToggleBound);
 
     // Listen for dark mode toggle events
-    window.addEventListener('dark-mode-toggle', this.handleDarkModeToggle.bind(this));
+    window.addEventListener('dark-mode-toggle', this.handleDarkModeToggleBound);
   }
 
   /**
    * Cleanup on component destroy.
+   * ✅ FIXED: Event listeners are properly removed using the same bound function references.
    */
   public ngOnDestroy(): void {
     this.showCheckboxDropdown = false;
-    window.removeEventListener('mail-search', this.handleSearchEvent.bind(this));
-    window.removeEventListener('sidebar-toggle', this.handleSidebarToggle.bind(this));
-    window.removeEventListener('compact-view-toggle', this.handleCompactViewToggle.bind(this));
-    window.removeEventListener('dark-mode-toggle', this.handleDarkModeToggle.bind(this));
+    window.removeEventListener('mail-search', this.handleSearchEventBound);
+    window.removeEventListener('sidebar-toggle', this.handleSidebarToggleBound);
+    window.removeEventListener('compact-view-toggle', this.handleCompactViewToggleBound);
+    window.removeEventListener('dark-mode-toggle', this.handleDarkModeToggleBound);
+
+    // Complete the destroy subject to unsubscribe all observables
+    this.destroy$.next();
+    this.destroy$.complete();
   }
+
+  // ✅ NEW: Bound handler methods to prevent bind() memory leak issue
+  private handleSearchEventBound = (event: Event): void => {
+    this.handleSearchEvent(event);
+  };
+
+  private handleSidebarToggleBound = (event: Event): void => {
+    this.handleSidebarToggle(event);
+  };
+
+  private handleCompactViewToggleBound = (event: Event): void => {
+    this.handleCompactViewToggle(event);
+  };
+
+  private handleDarkModeToggleBound = (event: Event): void => {
+    this.handleDarkModeToggle(event);
+  };
 
   /**
    * Handles sidebar toggle events from the header.
@@ -322,7 +352,7 @@ export class MailListComponent implements OnInit, OnDestroy {
   /**
    * Parses search query with advanced syntax (from:, to:, subject:, etc.)
    * @param query The search query string
-   * @returns Parsed search filters
+   * @returns Parsed search filters with proper typing
    */
   private parseSearchQuery(query: string): {
     from?: string;
@@ -331,7 +361,13 @@ export class MailListComponent implements OnInit, OnDestroy {
     hasWords?: string;
     hasAttachment?: boolean;
   } {
-    const filters: any = {};
+    const filters: {
+      from?: string;
+      to?: string;
+      subject?: string;
+      hasWords?: string;
+      hasAttachment?: boolean;
+    } = {};
     const lowerQuery = query.toLowerCase();
 
     // Extract from: filter
@@ -411,122 +447,152 @@ export class MailListComponent implements OnInit, OnDestroy {
   /**
    * Loads inbox mails for the logged-in user.
    * Excludes archived mails.
+   * Uses takeUntil to prevent memory leaks.
    */
   private loadInbox(): void {
     this.isLoading = true;
-    this.mailService.getInbox().subscribe({
-      next: (data) => {
-        this.applyStarredState(data);
-        // Filter out archived mails from inbox
-        const archivedIds = this.getArchivedMailIds();
-        this.mails = data.filter(mail => !mail.id || !archivedIds.includes(mail.id));
-        this.filteredMails = [...this.mails];
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Error loading mails';
-        this.isLoading = false;
-      }
-    });
+    this.mailService.getInbox()
+      .pipe(
+        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+      )
+      .subscribe({
+        next: (data) => {
+          this.applyStarredState(data);
+          // Filter out archived mails from inbox
+          const archivedIds = this.getArchivedMailIds();
+          this.mails = data.filter(mail => !mail.id || !archivedIds.includes(mail.id));
+          this.filteredMails = [...this.mails];
+          this.isLoading = false;
+        },
+        error: (err: ServiceError) => {
+          this.errorMessage = err.message || 'Error loading mails';
+          this.isLoading = false;
+        }
+      });
   }
 
   /**
    * Loads sent mails for the logged-in user.
+   * Uses takeUntil to prevent memory leaks.
    */
   private loadSent(): void {
     this.isLoading = true;
-    this.mailService.getSentMails().subscribe({
-      next: (data) => {
-        this.applyStarredState(data);
-        this.mails = data;
-        this.filteredMails = [...data];
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Error loading sent mails';
-        this.isLoading = false;
-      }
-    });
+    this.mailService.getSentMails()
+      .pipe(
+        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+      )
+      .subscribe({
+        next: (data) => {
+          this.applyStarredState(data);
+          this.mails = data;
+          this.filteredMails = [...data];
+          this.isLoading = false;
+        },
+        error: (err: ServiceError) => {
+          this.errorMessage = err.message || 'Error loading sent mails';
+          this.isLoading = false;
+        }
+      });
   }
 
   /**
    * Loads draft mails for the logged-in user.
+   * Uses takeUntil to prevent memory leaks.
    */
   private loadDrafts(): void {
     this.isLoading = true;
-    this.mailService.getDrafts().subscribe({
-      next: (data) => {
-        this.applyStarredState(data);
-        this.mails = data;
-        this.filteredMails = [...data];
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Error loading drafts';
-        this.isLoading = false;
-      }
-    });
+    this.mailService.getDrafts()
+      .pipe(
+        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+      )
+      .subscribe({
+        next: (data) => {
+          this.applyStarredState(data);
+          this.mails = data;
+          this.filteredMails = [...data];
+          this.isLoading = false;
+        },
+        error: (err: ServiceError) => {
+          this.errorMessage = err.message || 'Error loading drafts';
+          this.isLoading = false;
+        }
+      });
   }
 
   /**
    * Loads starred mails (filtered from all mails).
    * Includes starred emails from all folders (inbox, sent, drafts, etc.)
+   * Uses takeUntil to prevent memory leaks.
    */
   private loadStarred(): void {
     this.isLoading = true;
-    this.mailService.getMails().subscribe({
-      next: (data) => {
-        this.applyStarredState(data);
-        // Filter to only show starred emails
-        this.mails = data.filter(m => m.starred);
-        this.filteredMails = [...this.mails];
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Error loading starred mails';
-        this.isLoading = false;
-      }
-    });
+    this.mailService.getMails()
+      .pipe(
+        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+      )
+      .subscribe({
+        next: (data) => {
+          this.applyStarredState(data);
+          // Filter to only show starred emails
+          this.mails = data.filter(m => m.starred);
+          this.filteredMails = [...this.mails];
+          this.isLoading = false;
+        },
+        error: (err: ServiceError) => {
+          this.errorMessage = err.message || 'Error loading starred mails';
+          this.isLoading = false;
+        }
+      });
   }
 
   /**
    * Loads archived mails only.
+   * Uses takeUntil to prevent memory leaks.
    */
   private loadArchived(): void {
     this.isLoading = true;
-    this.mailService.getMails().subscribe({
-      next: (data) => {
-        this.applyStarredState(data);
-        // Filter to only show archived emails
-        const archivedIds = this.getArchivedMailIds();
-        this.mails = data.filter(mail => mail.id && archivedIds.includes(mail.id));
-        this.filteredMails = [...this.mails];
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Error loading archived mails';
-        this.isLoading = false;
-      }
-    });
+    this.mailService.getMails()
+      .pipe(
+        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+      )
+      .subscribe({
+        next: (data) => {
+          this.applyStarredState(data);
+          // Filter to only show archived emails
+          const archivedIds = this.getArchivedMailIds();
+          this.mails = data.filter(mail => mail.id && archivedIds.includes(mail.id));
+          this.filteredMails = [...this.mails];
+          this.isLoading = false;
+        },
+        error: (err: ServiceError) => {
+          this.errorMessage = err.message || 'Error loading archived mails';
+          this.isLoading = false;
+        }
+      });
   }
 
   /**
    * Loads all mails (including archived).
+   * Uses takeUntil to prevent memory leaks.
    */
   private loadAll(): void {
     this.isLoading = true;
-    this.mailService.getMails().subscribe({
-      next: (data) => {
-        this.applyStarredState(data);
-        this.mails = data;
-        this.filteredMails = [...data];
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Error loading all mails';
-        this.isLoading = false;
-      }
-    });
+    this.mailService.getMails()
+      .pipe(
+        takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+      )
+      .subscribe({
+        next: (data) => {
+          this.applyStarredState(data);
+          this.mails = data;
+          this.filteredMails = [...data];
+          this.isLoading = false;
+        },
+        error: (err: ServiceError) => {
+          this.errorMessage = err.message || 'Error loading all mails';
+          this.isLoading = false;
+        }
+      });
   }
 
   /**

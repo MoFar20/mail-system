@@ -1,13 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 /**
  * Login component for user authentication.
  * Provides a Google-style login form with floating labels.
  * On successful login, redirects to the mail list.
+ *
+ * Memory Management: Uses takeUntil pattern to prevent subscription leaks.
  */
 @Component({
   selector: 'app-login',
@@ -16,7 +20,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   /** The reactive login form group. */
   public loginForm: FormGroup;
 
@@ -35,6 +39,9 @@ export class LoginComponent {
   /** Tracks focus state of password input for floating label. */
   public passwordFocused: boolean = false;
 
+  /** Subject for managing observable unsubscriptions. */
+  private destroy$ = new Subject<void>();
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -49,22 +56,37 @@ export class LoginComponent {
   /**
    * Handles form submission for user login.
    * Validates the form and calls the auth service.
+   * Uses takeUntil pattern to prevent memory leaks.
    */
   public onSubmit(): void {
     if (this.loginForm.valid) {
       this.errorMessage = '';
       this.isLoading = true;
 
-      this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.router.navigate(['/mails']);
-        },
-        error: () => {
-          this.isLoading = false;
-          this.errorMessage = 'Ungültige Anmeldedaten. Bitte versuchen Sie es erneut.';
-        }
-      });
+      this.authService.login(this.loginForm.value)
+        .pipe(
+          takeUntil(this.destroy$)  // ✅ Automatically unsubscribe on component destroy
+        )
+        .subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.router.navigate(['/mails']);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            // Service now returns user-friendly error message
+            this.errorMessage = err.message || 'Invalid login credentials. Please try again.';
+          }
+        });
     }
+  }
+
+  /**
+   * Lifecycle hook: Clean up subscriptions to prevent memory leaks.
+   * The takeUntil operator handles most cleanup, but this ensures complete cleanup.
+   */
+  public ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

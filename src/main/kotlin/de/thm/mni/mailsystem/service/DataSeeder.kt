@@ -10,10 +10,35 @@ import java.time.LocalDateTime
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
 /**
- * Data seeder that initializes the database with sample data on application startup.
+ * Database initialization component that seeds the mail system with sample data on application startup.
  *
- * Creates test users and sample emails with various statuses to demonstrate
- * the functionality of the mail system.
+ * ## Architecture Role (3-Tier Spring Boot Application)
+ *
+ * **Layer Classification:** Infrastructure/Initialization Layer
+ *
+ * This component bridges the initialization phase between application startup and the service layer:
+ * - **Trigger:** Implements [CommandLineRunner] to execute after Spring context initialization
+ * - **Scope:** Non-production initialization (development/testing support)
+ * - **Purpose:** Provides consistent test data for demonstration and manual testing
+ *
+ * ## Data Population Strategy
+ *
+ * This seeder creates:
+ * - 3 test user accounts with different roles (student, professor, administrator)
+ * - 6 sample emails demonstrating various system features (drafts, sent, received, external)
+ * - Email relationships (recipients, attachments, multiple recipient types)
+ *
+ * ## Idempotency
+ *
+ * Both [seedUsers] and [seedMails] check if data already exists before creating records.
+ * This allows safe repeated application restarts without duplicate data pollution.
+ *
+ * @property userRepository Repository for user entity persistence and queries
+ * @property mailRepository Repository for mail entity persistence and queries
+ * @property passwordEncoder BCrypt encoder for secure password hashing (never store plain text)
+ *
+ * @see CommandLineRunner
+ * @see Transactional
  */
 @Component
 class DataSeeder(
@@ -25,7 +50,19 @@ class DataSeeder(
     private val logger = LoggerFactory.getLogger(DataSeeder::class.java)
 
     /**
-     * Executes on application startup to seed the database with test data.
+     * Main entry point executed by Spring Boot on application startup.
+     *
+     * Orchestrates the database seeding sequence:
+     * 1. Populates user table with test accounts
+     * 2. Populates mail table with sample emails
+     *
+     * **Transactional Guarantee:**
+     * If any step fails, the entire operation is rolled back, maintaining database consistency.
+     *
+     * @param args Command line arguments passed to the Spring Boot application (unused but required by interface)
+     *
+     * @see seedUsers
+     * @see seedMails
      */
     @Transactional
     override fun run(vararg args: String) {
@@ -34,7 +71,26 @@ class DataSeeder(
     }
 
     /**
-     * Creates test users if the user table is empty.
+     * Populates the user table with test credentials if empty.
+     *
+     * **Pre-Condition Check:**
+     * Only creates users if the user table is empty ([userRepository.count] == 0).
+     * This prevents duplicate records on repeated application starts.
+     *
+     * **Test Credentials Created:**
+     * - `student@thm.de` / `password123` - Regular user role (student)
+     * - `prof@thm.de` / `password123` - Educator/instructor role (professor)
+     * - `admin@thm.de` / `admin123` - Administrator role with different password
+     *
+     * **Security Note:**
+     * All passwords are hashed using BCrypt before persistence.
+     * The [passwordEncoder.encode] method generates a secure hash from plain text.
+     *
+     * **Logging:**
+     * INFO level log records the number of users created for audit trail.
+     *
+     * @see BCryptPasswordEncoder
+     * @see UserRepository.saveAll
      */
     private fun seedUsers() {
         if (userRepository.count() == 0L) {
@@ -49,7 +105,57 @@ class DataSeeder(
     }
 
     /**
-     * Creates sample emails if the mail table is empty.
+     * Populates the mail table with sample emails demonstrating system features if empty.
+     *
+     * **Pre-Condition Check:**
+     * Only creates emails if the mail table is empty ([mailRepository.count] == 0).
+     * This prevents duplicate sample data on repeated starts.
+     *
+     * **Sample Emails Hierarchy:**
+     *
+     * **Email 1 - Welcome Message (SENT, INTERNAL)**
+     * - From: admin@thm.de → To: student@thm.de
+     * - Demonstrates: Received mail, single recipient (TO type), past timestamp
+     * - Status: SENT (simulated as delivered 5 days ago)
+     *
+     * **Email 2 - Course Notification (SENT, INTERNAL)**
+     * - From: prof@thm.de → To: student@thm.de
+     * - Demonstrates: Professor-to-student communication, course update
+     * - Status: SENT (delivered 2 days ago)
+     *
+     * **Email 3 - External Alert (SENT, EXTERNAL, WITH ATTACHMENT)**
+     * - From: noreply@github.com → To: student@thm.de
+     * - Demonstrates: External mail source, attachment metadata, security notification
+     * - Attachment: "security_log.txt" (1024 bytes, text/plain)
+     * - Status: SENT (delivered 1 day ago)
+     *
+     * **Email 4 - Unsent Draft (DRAFT, INTERNAL)**
+     * - From: student@thm.de → To: prof@thm.de
+     * - Demonstrates: Composition in progress, not yet sent, editable state
+     * - Status: DRAFT (no sentAt timestamp)
+     *
+     * **Email 5 - Newsletter (SENT, MULTIPLE RECIPIENTS: TO + CC)**
+     * - From: news@thm.de → To: student@thm.de, CC: prof@thm.de
+     * - Demonstrates: Multiple recipient types (TO, CC), institutional communication
+     * - Status: SENT (delivered ~12 hours ago)
+     *
+     * **Email 6 - Student-to-Professor (SENT, INTERNAL)**
+     * - From: student@thm.de → To: prof@thm.de
+     * - Demonstrates: Sent mail from user perspective, communication pattern
+     * - Status: SENT (delivered 3 days ago)
+     *
+     * **Logging:**
+     * INFO level log records the number of emails created for audit trail.
+     *
+     * **Relationship Management:**
+     * Each mail properly establishes bidirectional relationships:
+     * - Recipients linked to mail via [Mail.addRecipient]
+     * - Attachments linked to mail via [Mail.addAttachment]
+     *
+     * @see Mail
+     * @see MailRecipient
+     * @see Attachment
+     * @see MailRepository.saveAll
      */
     private fun seedMails() {
         if (mailRepository.count() == 0L) {

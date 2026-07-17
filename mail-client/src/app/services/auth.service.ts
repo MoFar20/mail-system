@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, tap, catchError, throwError } from 'rxjs';
+import { AuthCredentials, LoginResponse, RegisterResponse, ApiErrorResponse } from '../models/auth.dto';
 
 /**
  * Service for handling authentication.
  * Manages the login, registration, and JWT token storage in local storage.
+ * Provides centralized error handling for auth operations.
  */
 @Injectable({
   providedIn: 'root'
@@ -14,6 +16,8 @@ export class AuthService {
   private authUrl = 'http://localhost:8080/api/auth';
   /** Key name for the token in LocalStorage. */
   private readonly TOKEN_KEY = 'auth_token';
+  /** Key name for the username in LocalStorage. */
+  private readonly USERNAME_KEY = 'auth_username';
 
   /**
    * Creates an instance of AuthService.
@@ -23,31 +27,72 @@ export class AuthService {
 
   /**
    * Registers a new user account.
-   * @param credentials An object with 'username' and 'password'.
+   * @param credentials User credentials with username and password.
    * @returns An Observable with the server response.
+   * @throws Observable with user-friendly error message.
    */
-  public register(credentials: any): Observable<any> {
-    return this.http.post<any>(`${this.authUrl}/register`, credentials);
+  public register(credentials: AuthCredentials): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.authUrl}/register`, credentials).pipe(
+      catchError((error: HttpErrorResponse) => {
+        const userFriendlyError = this.handleAuthError(error);
+        return throwError(() => userFriendlyError);
+      })
+    );
   }
 
   /**
    * Performs a login attempt with username and password.
    * On success, the received JWT token is stored in LocalStorage.
-   * @param credentials An object with 'username' and 'password'.
+   * @param credentials User credentials with username and password.
    * @returns An Observable with the server response (contains the token).
+   * @throws Observable with user-friendly error message.
    */
-  public login(credentials: any): Observable<{ token: string }> {
+  public login(credentials: AuthCredentials): Observable<LoginResponse> {
     // Clear any old tokens before login
     this.logout();
 
-    return this.http.post<{ token: string }>(`${this.authUrl}/login`, credentials).pipe(
+    return this.http.post<LoginResponse>(`${this.authUrl}/login`, credentials).pipe(
       tap(response => {
         if (response.token) {
           localStorage.setItem(this.TOKEN_KEY, response.token);
-          localStorage.setItem('auth_username', credentials.username);
+          localStorage.setItem(this.USERNAME_KEY, credentials.username);
         }
+      }),
+      catchError((error: HttpErrorResponse) => {
+        const userFriendlyError = this.handleAuthError(error);
+        return throwError(() => userFriendlyError);
       })
     );
+  }
+
+  /**
+   * Centralized error handling for authentication operations.
+   * Converts HTTP errors to user-friendly messages.
+   * @param error The HTTP error response.
+   * @returns Structured error object with user-friendly message.
+   */
+  private handleAuthError(error: HttpErrorResponse): ApiErrorResponse {
+    let message = 'An error occurred during authentication. Please try again.';
+
+    if (error.status === 401) {
+      message = 'Invalid credentials. Please check your username and password.';
+    } else if (error.status === 409) {
+      message = 'An account with this email address already exists. Please login instead.';
+    } else if (error.status === 400) {
+      message = error.error?.message || 'Invalid request. Please check your input.';
+    } else if (error.status === 500) {
+      message = 'Server error. Please try again later.';
+    } else if (error.status === 0) {
+      message = 'Unable to connect to the server. Please check your internet connection.';
+    } else if (error.error?.message) {
+      message = error.error.message;
+    }
+
+    return {
+      message,
+      status: error.status,
+      details: error.error
+    };
   }
 
   /**

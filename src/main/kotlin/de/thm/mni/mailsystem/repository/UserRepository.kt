@@ -8,7 +8,7 @@ import java.util.*
 /**
  * Repository interface for User entity data access.
  *
- * Provides standard CRUD operations through JpaRepository and custom
+ * Provides standard CRUD operations through JPA Repository and custom
  * query methods for user-specific operations.
  */
 @Repository
