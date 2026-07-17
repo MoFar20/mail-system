@@ -47,3 +47,5 @@ node_modules/
 mail-client/dist/
 mail-client/.angular/
 mail-client/.vscode/
+
+src/main/resources/static/ 
