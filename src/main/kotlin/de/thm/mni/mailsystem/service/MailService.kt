@@ -370,7 +370,7 @@ class MailService(private val mailRepository: MailRepository) {
      *
      * @see Mail.MailStatus
      */
-@Transactional
+    @Transactional
     fun sendMail(id: Long): MailDto {
         val mail = mailRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
@@ -379,8 +379,12 @@ class MailService(private val mailRepository: MailRepository) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only mails with status DRAFT can be sent.")
         }
 
-        mail.status = Mail.MailStatus.SENT
-        mail.sentAt = LocalDateTime.now()
+        val success = Random.nextDouble() < 0.9
+        
+        mail.status = if (success) Mail.MailStatus.SENT else Mail.MailStatus.ERROR
+        if (success) {
+            mail.sentAt = LocalDateTime.now()
+        }
 
         return mailRepository.save(mail).toDto()
     }
