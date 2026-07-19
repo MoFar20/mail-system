@@ -67,7 +67,7 @@ graph TB
     end
 
     subgraph Database
-        F[(H2 In-Memory)]
+        F[(H2 File-Based)]
     end
 
     A -- "HTTP/JSON (JWT)" --> E
@@ -409,37 +409,52 @@ erDiagram
 
 ## Quick Start
 
-**Prerequisites:** JDK 21+, Node.js 18+, npm
+**Prerequisites:** JDK 21+, npm (Node.js 22+ — auto-downloaded by Gradle; manual install only needed for the standalone Angular dev server)
 
 ### Development Mode
 
+Use **one** of the following approaches:
+
+**Option A — Full build then run (recommended):**
 ```bash
 cd mail-system
-./gradlew bootRun # Build frontend and start Spring Boot server
+./gradlew build bootRun
 ```
+This first runs the full `build` lifecycle (which includes the `buildAngular` NpmTask and `processResources`), ensuring the Angular frontend is compiled and merged into the Spring Boot resource bundle before the server starts.
 
-The Gradle build will automatically:
-1. Run `npm install` and build the Angular frontend (`buildAngular` task).
-2. Merge the compiled Angular output (`mail-client/dist/mail-client/browser`) into the Spring Boot resource bundle via the `processResources` task.
-3. Start the Spring Boot application with the frontend served as static files.
+> **Windows users:** use `.\gradlew build bootRun` in PowerShell.
 
-Open your browser at **http://localhost:8080**.
+**Option B — Backend only (Angular served separately with hot-reload):**
+```bash
+# Terminal 1 — start the Spring Boot backend
+cd mail-system
+./gradlew bootRun
 
-> **Windows users:** use `.\gradlew bootRun` in PowerShell.
+# Terminal 2 — start the Angular dev server (proxies API calls to port 8080)
+cd mail-system/mail-client
+npm start
+```
+Open your browser at **http://localhost:4200** (Angular dev server with live-reload).
+
+> **Note:** `./gradlew bootRun` alone starts the backend but does **not** rebuild the Angular frontend. It only serves already-compiled static assets if they exist from a previous `build` run. Use Option A or Option B accordingly.
 
 ## Production Deployment
-For Production, use a persistent database and secure configuration:
+For production, build a self-contained JAR and override sensitive properties via command-line arguments or environment variables:
 ```bash
-# 1. Build the application
+# 1. Build the application (compiles Angular + Spring Boot into a single JAR)
 ./gradlew clean build
 
-# 2. Set environment variables
-export DB_PASSWORD="your-secure-password"
-export JWT_SECRET="your-secure-jwt-secret-key"
-
-# 3. Run with production profile
-java -jar build/libs/mail-system-*.jar --spring.profiles.active=prod
+# 2. Run with production-safe overrides
+java -jar build/libs/mail-system-*.jar \
+  --spring.datasource.url=jdbc:postgresql://localhost:5432/mailsystem \
+  --spring.datasource.username=dbuser \
+  --spring.datasource.password="${DB_PASSWORD}" \
+  --jwt.secret=${JWT_SECRET} \
+  --spring.h2.console.enabled=false \
+  --spring.jpa.hibernate.ddl-auto=validate \
+  --logging.level.root=WARN
 ```
+> **Note:** There is no `application-prod.properties` included in the project. Override individual properties via command-line arguments (as shown above) or create your own `application-prod.properties` and activate it with `--spring.profiles.active=prod`.
 ### Production Checklist:
 -  Replace H2 with PostgreSQL/MySQL
 -  Use strong JWT secret (``generate with openssl rand -base64 64``)
@@ -450,11 +465,13 @@ java -jar build/libs/mail-system-*.jar --spring.profiles.active=prod
 
 ## Test Credentials (Development Only)
 
-| Email | Password | Role |
-|-------|----------|------|
-| `student@thm.de` | `password123` | Student |
-| `prof@thm.de` | `password123` | Professor |
-| `admin@thm.de` | `admin123` | Admin |
+> **Note:** There is no role-based access control in this system. The "Description" column below is a human-readable label for the seeded demo data only — all users have identical permissions.
+
+| Email | Password | Description |
+|-------|----------|-------------|
+| `student@thm.de` | `password123` | Demo student account |
+| `prof@thm.de` | `password123` | Demo professor account |
+| `admin@thm.de` | `admin123` | Demo admin account |
 
 ---
 
