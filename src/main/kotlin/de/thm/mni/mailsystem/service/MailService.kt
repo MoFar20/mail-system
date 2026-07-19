@@ -522,10 +522,13 @@ class MailService(private val mailRepository: MailRepository) {
                 "File type '$detectedMimeType' is not allowed."
             )
         }
-        // Sanitize filename - limit length and strip path separators
+        // Sanitize filename - limit length, strip path separators, null bytes, and control characters
         val fileName = (file.originalFilename ?: "unknown")
             .replace(Regex("[/\\\\]"), "_")
+            .replace(Regex("[\\x00-\\x1F]"), "_")
+            .trim('.')
             .take(255)
+            .ifBlank { "unknown" }
 
         val attachment = Attachment(
             fileName = fileName,
