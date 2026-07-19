@@ -1,6 +1,6 @@
 # THM Mail-System
 
-A full-stack, three-tier mail system built with **Angular** (Frontend), **Spring Boot / Kotlin** (Backend), and **H2** (in-memory database). The project demonstrates strict architectural layering, JWT-based security, type-safe communication, and clean code principles.
+A full-stack, three-tier mail system built with **Angular** (Frontend), **Spring Boot / Kotlin** (Backend), and **H2** (file-based database). The project demonstrates strict architectural layering, JWT-based security, type-safe communication, and clean code principles.
 
 ---
 
@@ -25,7 +25,7 @@ A full-stack, three-tier mail system built with **Angular** (Frontend), **Spring
 
 ## Overview
 
-THM Mail-System is a distributed mail application that simulates real-world email workflows. Users can register, log in, compose drafts, add file attachments, and send emails. The application is served as a single deployable unit: Gradle compiles the Angular frontend and embeds it inside the Spring Boot JAR, so no separate server is needed.
+THM Mail-System is a distributed mail application that simulates real-world email workflows. Users can register, log in, compose drafts, add file attachments, and send emails. The application is served as a single deployable unit: Gradle compiles the Angular frontend and merges it into the Spring Boot resource bundle, so no separate web server is needed. Data is persisted across restarts in a local H2 file database stored in the `./data/` directory.
 
 ---
 
@@ -267,7 +267,10 @@ mail-system/
 │       │   ├── config/
 │       │   │   ├── JwtUtils.kt                  # JWT generation & validation
 │       │   │   ├── JwtAuthenticationFilter.kt   # Per-request token filter
-│       │   │   └── SecurityConfig.kt            # Spring Security setup
+│       │   │   ├── SecurityConfig.kt            # Spring Security + CORS setup
+│       │   │   ├── WebConfig.kt                 # Additional CORS mappings
+│       │   │   ├── OpenAPIConfig.kt             # Swagger UI + JWT security scheme
+│       │   │   └── MultipartConfig.kt           # Multipart filter ordering (before security)
 │       │   ├── controller/
 │       │   │   ├── AuthController.kt            # POST /api/auth/register|login
 │       │   │   └── MailController.kt            # /api/mails/** endpoints
@@ -284,7 +287,8 @@ mail-system/
 │       │   │   ├── UserRepository.kt            # findByMail()
 │       │   │   └── MailRepository.kt            # custom JPQL queries
 │       │   └── service/
-│       │       └── MailService.kt               # All business logic + transactions
+│       │       ├── MailService.kt               # All business logic + transactions
+│       │       └── DataSeeder.kt                # Sample data seeding on startup
 │       └── resources/
 │           └── application.properties           # DB, JWT, multipart config
 │
@@ -405,7 +409,7 @@ erDiagram
 
 ## Quick Start
 
-**Prerequisites:** JDK 17+, Node.js 18+, npm
+**Prerequisites:** JDK 21+, Node.js 18+, npm
 
 ### Development Mode
 
@@ -416,8 +420,8 @@ cd mail-system
 
 The Gradle build will automatically:
 1. Run `npm install` and build the Angular frontend (`buildAngular` task).
-2. Copy the compiled frontend into `src/main/resources/static`.
-3. Start the Spring Boot application with the frontend embedded.
+2. Merge the compiled Angular output (`mail-client/dist/mail-client/browser`) into the Spring Boot resource bundle via the `processResources` task.
+3. Start the Spring Boot application with the frontend served as static files.
 
 Open your browser at **http://localhost:8080**.
 
@@ -461,5 +465,5 @@ java -jar build/libs/mail-system-*.jar --spring.profiles.active=prod
 | Frontend | Angular 18+, TypeScript, RxJS, Reactive Forms |
 | Backend | Spring Boot 4.0, Kotlin, Spring Security, Spring Data JPA |
 | Auth | JSON Web Tokens (JWT), BCrypt password hashing |
-| Database | H2 in-memory (Hibernate / JPA) |
+| Database | H2 file-based — `./data/mailsystem` (Hibernate / JPA) |
 | Build | Gradle (Kotlin DSL), npm |

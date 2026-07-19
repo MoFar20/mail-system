@@ -65,7 +65,10 @@ To adhere to REST principles, each resource is uniquely identifiable via a URI. 
     - GET /api/mails/drafts
 - Sub-Resources:
     - POST /api/mails/{id}/send
-    - GET /api/mails/{id}/attachments/{attachmentId}
+    - GET /api/mails/{id}/attachments
+    - POST /api/mails/{id}/attachments
+    - GET /api/mails/{mailId}/attachments/{attachmentId}/download
+    - DELETE /api/mails/{mailId}/attachments/{attachmentId}
 
 #### Question 4: Create DTO objects that model your requests and responses.
 **Answer:**
@@ -231,11 +234,11 @@ A server verifies data integrity by independently recreating the signature and c
 
 **Note:** The tasks in this section required practical implementation to generate an up-to-date OpenAPI documentation directly from the Spring Boot code. Below is the documentation of how this was realized:
 
-* **OpenAPI Integration:** I integrated the `springdoc-openapi-starter-webmvc-ui` dependency into my `build.gradle.kts` to automatically generate the OpenAPI specification (OAS 3.1) from our controllers and DTOs.
+* **OpenAPI Integration:** I integrated the `springdoc-openapi-starter-webmvc-ui` dependency into my `build.gradle.kts` to automatically generate the OpenAPI specification (OAS 3.1) from the existing controllers and DTOs. No additional annotations were needed on the controller methods — springdoc infers all endpoint information directly from the standard Spring MVC annotations (`@RestController`, `@RequestMapping`, `@PostMapping`, `@RequestBody`, etc.).
 
-* **API Documentation:** I utilized annotations such as `@Operation`, `@ApiResponse`, and `@Schema` across `UserRestApi` and `MailController` to provide clear descriptions, HTTP status codes, and payload schemas for both developers and automation tools.
+* **API Documentation:** The generated Swagger UI is accessible at `/swagger-ui/index.html` and documents all endpoints with their request/response schemas automatically derived from the Kotlin data classes (DTOs). This provides clear documentation for both developers and automation tools without code duplication.
 
-* **Authentication Specification:** As required by the exercise, I documented the JWT (Bearer) authentication. Since this is a global configuration, I created an `OpenAPIConfig.kt` class. Within this class, I used the `Components().addSecuritySchemes("bearer-jwt", ...)` method to register the HTTP Bearer scheme, and added it to the global security requirements so that the Swagger UI correctly displays the "Authorize" button for protected endpoints.
+* **Authentication Specification:** As required by the exercise, I documented the JWT (Bearer) authentication. Since this is a global configuration, I created an `OpenAPIConfig.kt` class. Within this class, I used the `Components().addSecuritySchemes("bearer-jwt", ...)` method to register the HTTP Bearer scheme, and added it via `addSecurityItem(SecurityRequirement().addList("bearer-jwt"))` so that the Swagger UI correctly displays the "Authorize" button for all protected endpoints.
 ---
 ## Part 8: Mono Repository (Build Automation)
 ### Build Automation with Gradle and Mono-Repositories
@@ -254,7 +257,7 @@ No, the `node_modules` folder is completely unnecessary in the production enviro
 **Answer:**
 * Since the Angular application is fully compiled into static assets (HTML, CSS, JS) prior to deployment, the entire `node_modules` folder (including all regular and dev dependencies) is safely ignored for the production build.
 
-* In our Gradle configuration, the `installDist` distribution task is set up to strictly copy the compiled artifacts from the `install/browser` directory into the final distribution folder, which inherently excludes the `node_modules` directory entirely from the deployed system.
+* In our Gradle configuration, the `buildAngular` task (an `NpmTask`) compiles the Angular source into `mail-client/dist/mail-client/browser`. The subsequent `processResources` task then merges only those compiled static assets into the Spring Boot resource bundle. The `node_modules` directory is never referenced by either task and is therefore completely excluded from the final application.
 
 ***
 
