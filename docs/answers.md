@@ -207,7 +207,7 @@ A server verifies data integrity by independently recreating the signature and c
 
 **Note:** The exercises in this section were purely practical and did not contain theoretical questions. Below is a brief documentation of how these practical tasks were implemented in the `mail-client` frontend application:
 
-* **Project Structure:** The Angular project was set up following a feature/layer-based structure, separating the application into `pages`, `components` (for reusable UI elements), `services` (for API communication), and `models` (for TypeScript interfaces).
+* **Project Structure:** The Angular project was set up following a feature/layer-based structure, separating the application into `components` (for UI elements), `services` (for API communication), `guards` (for route protection), `interceptors` (for HTTP processing), and `models` (for TypeScript interfaces).
 
 * **Routing & Navigation:** Single-page navigation was implemented in `app.routes.ts` using the Angular Router, mapping URLs to their respective page components (e.g., Home, Login, Register).
 
@@ -225,7 +225,7 @@ A server verifies data integrity by independently recreating the signature and c
 
 * **Authentication Interceptor:** To securely interact with the protected backend endpoints, I implemented an `HttpInterceptorFn`. This interceptor automatically retrieves the saved JWT from the local storage and appends it to the `Authorization` header as a `Bearer` token for all outgoing HTTP requests.
 
-* **Route Protection (Guards):** I implemented an `AuthGuard` utilizing Angular's `CanActivate` interface to protect sensitive routes (e.g., Inbox, Sent, Drafts). The guard checks the authentication state and redirects unauthenticated users back to the login page.
+* **Route Protection (Guards):** I implemented an `authGuard` as a functional guard using Angular's `CanActivateFn` type (the modern approach since Angular 14+), utilizing the `inject()` function to access `AuthService` and `Router`. The guard checks the authentication state and redirects unauthenticated users back to the login page.
 
 * **File Upload Implementation:** Although not explicitly detailed in the lecture slides, I successfully implemented attachment uploads by constructing `FormData` objects in Angular and submitting them as `multipart/form-data` POST requests via the `HttpClient` to my Spring Boot backend.
 
@@ -263,5 +263,5 @@ No, the `node_modules` folder is completely unnecessary in the production enviro
 
 ### Implementation Note: Mono-Repository Setup
 * **Unified Structure:** I successfully consolidated the frontend (Angular) and backend (Spring Boot) into a single Mono-Repository structure to improve feature testing and maintain a clear responsibility for the entire system.
-* **Build Automation:** I configured `settings.gradle.kts` to include both projects as modules and utilized a root `build.gradle.kts` to orchestrate the build process.
-* **Distribution Generation:** I created unified Gradle tasks (such as `installDist` and `clean`) at the root level. Running the distribution task automatically compiles both the frontend and backend, copying their artifacts into a centralized `build/install` directory ready for deployment.
+* **Build Automation:** The Angular frontend is not a separate Gradle module, but is instead integrated via the `com.github.node-gradle.node` Gradle plugin. A custom `buildAngular` NpmTask runs `npm run build` inside the `mail-client/` directory, and the compiled output is merged into Spring Boot's static resources via the `processResources` task — resulting in a single self-contained JAR that serves both the API and the frontend.
+* **Distribution Generation:** I utilized the standard Gradle tasks (`build`, `clean`) at the root level. Running `./gradlew build` automatically compiles both the frontend (via the `buildAngular` NpmTask) and backend into a single deployable JAR.
