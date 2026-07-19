@@ -407,6 +407,8 @@ erDiagram
 
 **Prerequisites:** JDK 17+, Node.js 18+, npm
 
+### Development Mode
+
 ```bash
 cd mail-system
 ./gradlew bootRun # Build frontend and start Spring Boot server
@@ -421,9 +423,28 @@ Open your browser at **http://localhost:8080**.
 
 > **Windows users:** use `.\gradlew bootRun` in PowerShell.
 
+## Production Deployment
+For Production, use a persistent database and secure configuration:
+```bash
+# 1. Build the application
+./gradlew clean build
+
+# 2. Set environment variables
+export DB_PASSWORD="your-secure-password"
+export JWT_SECRET="your-secure-jwt-secret-key"
+
+# 3. Run with production profile
+java -jar build/libs/mail-system-*.jar --spring.profiles.active=prod
+```
+### Production Checklist:
+-  Replace H2 with PostgreSQL/MySQL
+-  Use strong JWT secret (``generate with openssl rand -base64 64``)
+-  Store passwords in environment variables (never in code)
+-  Disable H2 console (``spring.h2.console.enabled=false``)
+-  Set spring.jpa.hibernate.ddl-auto=validate (never ``update`` in prod)
 ---
 
-## Test Credentials
+## Test Credentials (Development Only)
 
 | Email | Password | Role |
 |-------|----------|------|

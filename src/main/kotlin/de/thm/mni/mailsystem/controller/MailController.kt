@@ -12,10 +12,12 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 
 @RestController
 @RequestMapping("/api/mails")
-@CrossOrigin(origins = ["http://localhost:4200"])
+@CrossOrigin 
+@SecurityRequirement(name = "bearer-jwt")
 class MailController(private val mailService: MailService) {
 
     private fun getAuthenticatedEmail(): String {

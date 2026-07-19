@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 
 /**
  * REST controller for authentication operations.
@@ -24,7 +25,8 @@ import org.springframework.web.server.ResponseStatusException
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin // No need for specific origin since frontend and backend are on the same port now
+@CrossOrigin 
+@SecurityRequirements()
 class AuthController(
     private val userRepository: UserRepository,
     private val passwordEncoder: BCryptPasswordEncoder,

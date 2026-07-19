@@ -15,35 +15,15 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import jakarta.servlet.http.HttpServletResponse
 
-
-/**
- * Spring Security configuration for the mail system.
- *
- * Configures JWT-based authentication with stateless sessions and defines
- * which endpoints require authentication.
- *
- * @property jwtAuthenticationFilter The JWT filter to validate tokens on each request.
- */
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilter) {
 
     private val logger = LoggerFactory.getLogger(SecurityConfig::class.java)
 
-    /**
-     * Provides a BCrypt password encoder bean for secure password hashing.
-     *
-     * @return BCryptPasswordEncoder instance for password encoding and validation.
-     */
     @Bean
     fun passwordEncoder() = BCryptPasswordEncoder()
 
-    /**
-     * Configures the security filter chain with JWT authentication.
-     *
-     * @param http The HttpSecurity builder.
-     * @return The configured SecurityFilterChain.
-     */
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
@@ -63,12 +43,29 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
             }
             .authorizeHttpRequests { auth ->
                 auth
+                    // Public: Authentication endpoints
                     .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/**").permitAll()
+                    
+                    // Public: Static frontend resources (Angular SPA)
                     .requestMatchers("/", "/index.html", "/*.js", "/*.css", "/*.ico", "/assets/**").permitAll()
-                    .requestMatchers("/h2-console/**", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                    
+                    // Public: API documentation (Swagger UI, OpenAPI)
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                    
+                    // Public: H2 Console (development/debugging)
+                    .requestMatchers("/h2-console/**").permitAll()
+                    
+                    // Public: CORS preflight requests
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .anyRequest().permitAll()
+                    
+                    // Protected: All mail API endpoints require authentication
+                    .requestMatchers("/api/mails/**").authenticated()
+                    
+                    // Protected: Any other API endpoints require authentication
+                    .requestMatchers("/api/**").authenticated()
+                    
+                    // Deny: Everything else not explicitly allowed
+                    .anyRequest().denyAll()
             }
             .headers { headers ->
                 headers.frameOptions { it.sameOrigin() } // Required for H2 Console
@@ -78,15 +75,14 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
         return http.build()
     }
 
-    /**
-     * Configures CORS to allow requests from the Angular frontend.
-     *
-     * @return The CORS configuration source.
-     */
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
+            // Allow frontend on different port during development
             addAllowedOrigin("http://localhost:4200")
+            // Allow same-origin requests (production - frontend served by Spring Boot)
+            addAllowedOrigin("http://localhost:8080")
+            
             addAllowedMethod("*")
             addAllowedHeader("*")
             exposedHeaders = listOf("Authorization", "Content-Type")
