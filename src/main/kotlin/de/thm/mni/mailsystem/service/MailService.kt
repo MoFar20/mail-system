@@ -62,6 +62,13 @@ class MailService(private val mailRepository: MailRepository) {
         "application/octet-stream"
     )
 
+    /**
+     * Asserts that the requesting user has access to the specified mail.
+     *
+     * @param mail The mail entity to check access for
+     * @param requestingEmail The email address of the requesting user
+     * @throws ResponseStatusException if the user does not have access
+     */
     private fun assertMailAccess(mail: Mail, requestingEmail: String) {
         val isSender = mail.sender == requestingEmail
         val isRecipient = mail.recipients.any { it.address == requestingEmail }
@@ -91,19 +98,6 @@ class MailService(private val mailRepository: MailRepository) {
     @Transactional(readOnly = true)
     fun getAllMails(email: String): List<MailDto> {
         return mailRepository.findAllByUser(email).toDto()
-    }
-
-    /**
-     * Asserts that the requesting user has access to the specified mail.
-     *
-     * @param mail The mail entity to check access for
-     * @param requestingEmail The email address of the requesting user
-     * @throws ResponseStatusException if the user does not have access
-     */
-    private fun assertMailAccess(mail: Mail, requestingEmail: String) {
-    val isSender = mail.sender == requestingEmail
-    val isRecipient = mail.recipients.any { it.address == requestingEmail }
-    if (!isSender && !isRecipient) throw ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied")
     }
 
     /**
