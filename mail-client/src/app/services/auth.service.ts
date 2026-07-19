@@ -18,12 +18,16 @@ export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
   /** Key name for the username in LocalStorage. */
   private readonly USERNAME_KEY = 'auth_username';
+  /** Key name for the first name in LocalStorage. */
+  private readonly FIRSTNAME_KEY = 'auth_firstname';
+  /** Key name for the last name in LocalStorage. */
+  private readonly LASTNAME_KEY = 'auth_lastname';
 
   /**
    * Creates an instance of AuthService.
    * @param http The Angular HttpClient for API requests.
    */
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Registers a new user account.
@@ -56,6 +60,12 @@ export class AuthService {
         if (response.token) {
           localStorage.setItem(this.TOKEN_KEY, response.token);
           localStorage.setItem(this.USERNAME_KEY, credentials.mail);
+          if (response.firstname) {
+            localStorage.setItem(this.FIRSTNAME_KEY, response.firstname);
+          }
+          if (response.lastname) {
+            localStorage.setItem(this.LASTNAME_KEY, response.lastname);
+          }
         }
       }),
       catchError((error: HttpErrorResponse) => {
@@ -108,7 +118,19 @@ export class AuthService {
    */
   public logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem('auth_username');
+    localStorage.removeItem(this.USERNAME_KEY);
+    localStorage.removeItem(this.FIRSTNAME_KEY);
+    localStorage.removeItem(this.LASTNAME_KEY);
+  }
+
+  /** Returns the stored first name of the logged-in user. */
+  public getFirstname(): string | null {
+    return localStorage.getItem(this.FIRSTNAME_KEY);
+  }
+
+  /** Returns the stored last name of the logged-in user. */
+  public getLastname(): string | null {
+    return localStorage.getItem(this.LASTNAME_KEY);
   }
 
   /**

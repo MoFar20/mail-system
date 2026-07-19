@@ -113,7 +113,7 @@ class AuthController(
         if (passwordEncoder.matches(password, user.passwordHash)) {
             val token = jwtUtils.generateToken(normalizedEmail)
             logger.info("User logged in: {}", mail)
-            return mapOf("token" to token)
+            return mapOf("token" to token, "firstname" to user.firstname, "lastname" to user.lastname)
         } else {
             logger.warn("Login attempt with invalid password for user: {}", mail)
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")

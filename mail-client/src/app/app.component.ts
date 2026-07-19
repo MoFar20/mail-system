@@ -205,24 +205,54 @@ export class AppComponent {
    * @returns Two character initials.
    */
   public getAvatarInitials(): string {
+    const firstname = this.authService.getFirstname();
+    const lastname = this.authService.getLastname();
+    if (firstname && lastname) {
+      return (firstname.charAt(0) + lastname.charAt(0)).toUpperCase();
+    }
+    if (firstname) {
+      return firstname.substring(0, Math.min(2, firstname.length)).toUpperCase();
+    }
     const email = this.authService.getUsername();
     if (!email) return '?';
     const name = email.split('@')[0];
-    if (name.length >= 2) {
-      return name.substring(0, 2).toUpperCase();
-    }
-    return name.toUpperCase();
+    return name.substring(0, Math.min(2, name.length)).toUpperCase();
   }
 
   /**
-   * Gets display name from user email.
-   * @returns Formatted display name.
+   * Gets display name: "Firstname Lastname" when available, falls back to email local part.
    */
   public getUserDisplayName(): string {
+    const firstname = this.authService.getFirstname();
+    const lastname = this.authService.getLastname();
+    if (firstname && lastname) return `${firstname} ${lastname}`;
+    if (firstname) return firstname;
     const email = this.authService.getUsername();
     if (!email) return 'User';
     const name = email.split('@')[0];
     return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  /**
+   * Returns the user's first name from the auth service (stored after login).
+   */
+  public getUserFirstName(): string {
+    return this.authService.getFirstname() ?? '\u2013';
+  }
+
+  /**
+   * Returns the user's last name from the auth service (stored after login).
+   */
+  public getUserLastName(): string {
+    return this.authService.getLastname() ?? '\u2013';
+  }
+
+  /**
+   * Returns a description label for the account.
+   * @returns Static description string.
+   */
+  public getUserDescription(): string {
+    return 'User';
   }
 
   /**

@@ -32,6 +32,8 @@ export interface AuthCredentials extends RegisterCredentials {}
  */
 export interface LoginResponse {
   token: string;
+  firstname?: string;
+  lastname?: string;
 }
 
 /**

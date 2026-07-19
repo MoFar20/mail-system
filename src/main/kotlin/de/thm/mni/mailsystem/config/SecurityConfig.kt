@@ -64,8 +64,8 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
                     // Protected: Any other API endpoints require authentication
                     .requestMatchers("/api/**").authenticated()
                     
-                    // Deny: Everything else not explicitly allowed
-                    .anyRequest().denyAll()
+                    // Public: Angular SPA routes and any unmatched static resources
+                    .anyRequest().permitAll()
             }
             .headers { headers ->
                 headers.frameOptions { it.sameOrigin() } // Required for H2 Console
