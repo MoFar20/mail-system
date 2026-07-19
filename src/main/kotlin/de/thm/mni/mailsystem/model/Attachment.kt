@@ -104,34 +104,27 @@ class Attachment(
     val size: Long,
 
     /**
-     * Binary file content stored as BLOB (Binary Large Object).
+     * Relative path to the stored file within the attachment storage folder.
      *
-     * **Storage:** H2 database BLOB column (supports up to 2GB)
-     * **Type:** ByteArray (Kotlin primitive byte array, Java byte[])
-     * **Nullability:** Optional due to lazy loading strategy
+     * **Storage:** Server filesystem under the configured `app.attachment.storage-path` directory.
+     * **Format:** Relative path segment written as `{mailId}/{uuid}_{sanitizedFileName}`
+     * **Nullability:** Null before the entity is saved; set during upload.
      *
-     * **Lazy Loading Details:**
-     * - @Lob annotation: Tells Hibernate this is a large object
-     * - Assignment: `fetch = FetchType.LAZY` is default for LOBs
-     * - Behavior: NOT loaded when Mail is fetched; loaded only when accessed
-     * - Session: Requires active @Transactional boundary to access safely
+     * **Why filesystem, not BLOB:**
+     * - Keeps the relational database lean (metadata only, no large binary columns)
+     * - The root storage folder is configurable via `app.attachment.storage-path` in
+     *   `application.properties`, making it easy to redirect storage to any local or
+     *   mounted path without touching code.
+     * - Standard pattern for production mail systems (e.g., file-server, NAS, object storage)
      *
-     * **JSON Handling:**
-     * - @JsonIgnore prevents serialization of binary data to JSON
-     * - Reason: ByteArray cannot be safely represented in JSON
-     * - Alternative: Binary served via dedicated download endpoint
+     * **Security:**
+     * - Filename is sanitised (path separators and control characters stripped) before use.
+     * - UUID prefix prevents collisions and directory traversal via predictable names.
      *
-     * **Memory Efficiency:**
-     * - Mail list query loads only metadata (1 MB for 1000 mails)
-     * - Binary not loaded unless user clicks "download"
-     * - Prevents out-of-memory on large mail systems
-     *
-     * **Default:** null during object creation; populated on upload
+     * **Default:** null during object creation; populated by [MailService.uploadAttachment]
      */
-    @Lob
-    @Column(columnDefinition = "BLOB")
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    var data: ByteArray? = null,
+    @Column(nullable = true)
+    var storagePath: String? = null,
 
     /**
      * Many-to-One relationship: Multiple attachments belong to one mail.
@@ -167,7 +160,7 @@ class Attachment(
      * ```kotlin
      * val mail = mailRepository.findById(mailId)  // Mail fetched, attachments LAZY
      * val attachment = mail.attachments.find { ... }  // Now attachments loaded from DB
-     * val data = attachment.data  // ByteArray BLOB loaded separately
+     * val data = Files.readAllBytes(Paths.get(attachment.storagePath!!))  // Read file from disk
      * ```
      */
     @ManyToOne(fetch = FetchType.LAZY)

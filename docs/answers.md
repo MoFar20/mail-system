@@ -88,7 +88,7 @@ Message modeling via Data Transfer Objects (DTOs) is necessary to avoid missing 
 To realize optional file attachments in the Web-Mail client, Spring Boot uses the ``multipart/form-data`` content type.
 - **Mechanism**: The file is received in the controller endpoint using the ``@RequestPart`` or ``@RequestParam`` annotation bound to Spring's ``MultipartFile`` interface.
 
-- **Storage**: The ``MultipartFile`` provides methods to extract the original filename, MIME type, size, and the binary data (``.bytes``). This information is mapped and saved within the ``Attachment`` entity, where the binary data is stored as a BLOB (``ByteArray``) in the relational database.
+- **Storage**: The ``MultipartFile`` provides methods to extract the original filename, MIME type, size, and the binary data (``.bytes``). The binary content is **not** stored as a BLOB in the database. Instead it is written to a **configurable folder on the server's filesystem**. The target directory is injected into `MailService` via `@Value("${app.attachment.storage-path}")`, making it configurable in `application.properties` (default: `./data/attachments`). Within that folder each mail gets its own sub-directory (`{mailId}/`), and each file is stored under a UUID-prefixed name to prevent collisions. Only the metadata (filename, MIME type, size) and the resulting filesystem path (`storagePath`) are persisted in the `Attachment` database row.
 
 ---
 

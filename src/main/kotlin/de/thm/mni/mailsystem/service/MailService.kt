@@ -4,12 +4,17 @@ import de.thm.mni.mailsystem.dto.*
 import de.thm.mni.mailsystem.model.*
 import de.thm.mni.mailsystem.repository.MailRepository
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.server.ResponseStatusException
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalDateTime
+import java.util.UUID
 import kotlin.random.Random
 
 /**
@@ -46,7 +51,10 @@ import kotlin.random.Random
  * @see Mail
  */
 @Service
-class MailService(private val mailRepository: MailRepository) {
+class MailService(
+    private val mailRepository: MailRepository,
+    @Value("\${app.attachment.storage-path}") private val attachmentStoragePath: String
+) {
 
     private val logger = LoggerFactory.getLogger(MailService::class.java)
 
@@ -139,9 +147,7 @@ class MailService(private val mailRepository: MailRepository) {
      */
     @Transactional(readOnly = true)
     fun getSentMails(email: String): List<MailDto> {
-        return mailRepository.findBySender(email)
-            .filter { it.status == Mail.MailStatus.SENT }
-            .toDto()
+        return mailRepository.findBySenderAndStatus(email, Mail.MailStatus.SENT).toDto()
     }
 
     /**
@@ -536,16 +542,23 @@ class MailService(private val mailRepository: MailRepository) {
             .take(255)
             .ifBlank { "unknown" }
 
+        // Write binary content to the configurable storage folder
+        val storageDir = Paths.get(attachmentStoragePath, id.toString())
+        Files.createDirectories(storageDir)
+        val storedFileName = "${UUID.randomUUID()}_$fileName"
+        val filePath = storageDir.resolve(storedFileName)
+        Files.write(filePath, file.bytes)
+
         val attachment = Attachment(
             fileName = fileName,
             mimeType = detectedMimeType,
             size = file.size,
-            data = file.bytes,
+            storagePath = filePath.toString(),
             mail = mail
         )
         mail.addAttachment(attachment)
 
-        logger.info("Uploaded attachment '{}' ({} bytes) to mail {}", attachment.fileName, attachment.size, id)
+        logger.info("Uploaded attachment '{}' ({} bytes) to mail {} at '{}'", attachment.fileName, attachment.size, id, filePath)
         return mailRepository.save(mail).toDto()
     }
 
@@ -599,8 +612,15 @@ class MailService(private val mailRepository: MailRepository) {
         val attachment = mail.attachments.find { it.id == attachmentId }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found")
 
-        val data = attachment.data
+        val path = attachment.storagePath
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment content not available")
+
+        val data = try {
+            Files.readAllBytes(Paths.get(path))
+        } catch (e: IOException) {
+            logger.error("Could not read attachment file at '{}': {}", path, e.message)
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment file not found on server")
+        }
 
         return AttachmentData(attachment.fileName, attachment.mimeType, attachment.size, data)
     }
@@ -654,6 +674,16 @@ class MailService(private val mailRepository: MailRepository) {
 
         val attachment = mail.attachments.find { it.id == attachmentId }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found")
+
+        // Delete the file from the filesystem before removing the DB record
+        val storagePath = attachment.storagePath
+        if (storagePath != null) {
+            try {
+                Files.deleteIfExists(Paths.get(storagePath))
+            } catch (e: IOException) {
+                logger.warn("Could not delete attachment file at '{}': {}", storagePath, e.message)
+            }
+        }
 
         mail.attachments.remove(attachment)
         mailRepository.save(mail)

@@ -55,3 +55,16 @@ data class LoginRequest(
     @field:Size(max = 128, message = "Password must not exceed 128 characters")
     val password: String
 )
+
+/**
+ * Data Transfer Object for a successful login response.
+ *
+ * @property token The JWT bearer token to be used in subsequent authenticated requests.
+ * @property firstname The authenticated user's first name.
+ * @property lastname The authenticated user's last name.
+ */
+data class LoginResponse(
+    val token: String,
+    val firstname: String,
+    val lastname: String
+)

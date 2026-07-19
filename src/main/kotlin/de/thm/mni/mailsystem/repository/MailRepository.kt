@@ -34,8 +34,3 @@ interface MailRepository : JpaRepository<Mail, Long> {
     @Query("SELECT DISTINCT m FROM Mail m LEFT JOIN m.recipients r WHERE m.sender = :email OR r.address = :email")
     fun findAllByUser(@Param("email") email: String): List<Mail>
 }
-/*@Repository
-interface AttachmentRepository : JpaRepository<Attachment, Long>
-
-@Repository
-interface MailRecipientRepository : JpaRepository<MailRecipient, Long>*/

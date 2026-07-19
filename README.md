@@ -268,7 +268,6 @@ mail-system/
 │       │   │   ├── JwtUtils.kt                  # JWT generation & validation
 │       │   │   ├── JwtAuthenticationFilter.kt   # Per-request token filter
 │       │   │   ├── SecurityConfig.kt            # Spring Security + CORS setup
-│       │   │   ├── WebConfig.kt                 # Additional CORS mappings
 │       │   │   ├── OpenAPIConfig.kt             # Swagger UI + JWT security scheme
 │       │   │   └── MultipartConfig.kt           # Multipart filter ordering (before security)
 │       │   ├── controller/

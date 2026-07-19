@@ -265,14 +265,14 @@ export class MailEditorComponent implements OnInit, OnDestroy {
     const mailData = this.buildMailData();
 
     if (this.isEditMode && this.editingMailId) {
-      this.mailService.updateMail(this.editingMailId, mailData as any)
+      this.mailService.updateMail(this.editingMailId, mailData as unknown as Mail)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => this.uploadPendingAttachments(this.editingMailId!, '✅ Draft updated successfully!'),
           error: (err: ServiceError) => this.handleError(err, 'Failed to update draft.')
         });
     } else {
-      this.mailService.createMail(mailData as any)
+      this.mailService.createMail(mailData as unknown as Mail)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (createdMail) => {
@@ -311,21 +311,21 @@ export class MailEditorComponent implements OnInit, OnDestroy {
     const mailData = this.buildMailData();
 
     if (this.isEditMode && this.editingMailId) {
-      this.mailService.updateMail(this.editingMailId, mailData as any)
+      this.mailService.updateMail(this.editingMailId, mailData as unknown as Mail)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => this.uploadPendingAttachmentsThenSend(this.editingMailId!),
           error: (err: ServiceError) => this.handleError(err, 'Failed to update email before sending.')
         });
     } else {
-      this.mailService.createMail(mailData as any)
+      this.mailService.createMail(mailData as unknown as Mail)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (createdMail) => {
             if (createdMail.id) {
               this.uploadPendingAttachmentsThenSend(createdMail.id);
             } else {
-              this.handleError({ message: 'No ID returned.', status: 500}, 'Failed to create.');
+              this.handleError({ message: 'No ID returned.', status: 500 }, 'Failed to create.');
             }
           },
           error: (err: ServiceError) => this.handleError(err, 'Failed to create email.')
