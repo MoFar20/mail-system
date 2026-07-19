@@ -1,8 +1,8 @@
 package de.thm.mni.mailsystem.config
 
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -28,7 +28,15 @@ class JwtUtils {
     private var jwtExpirationMs: Long = 86400000
 
     /** HMAC signing key derived from the secret. Lazily initialized. */
-    private val key by lazy { Keys.hmacShaKeyFor(jwtSecret.toByteArray()) }
+    private val key: javax.crypto.SecretKey by lazy { Keys.hmacShaKeyFor(jwtSecret.toByteArray()) }
+
+    @PostConstruct
+    fun validateSecret() {
+        require(jwtSecret.toByteArray().size >= 32) {
+            "SECURITY ERROR: jwt.secret must be at least 256 bits (32 bytes). " +
+            "Generate one with: openssl rand -base64 64"
+        }
+    }
 
     /**
      * Generates a JWT token for the given username.
@@ -41,10 +49,10 @@ class JwtUtils {
      */
     fun generateToken(username: String): String {
         return Jwts.builder()
-            .setSubject(username)
-            .setIssuedAt(Date())
-            .setExpiration(Date(System.currentTimeMillis() + jwtExpirationMs))
-            .signWith(key, SignatureAlgorithm.HS256)
+            .subject(username)
+            .issuedAt(Date())
+            .expiration(Date(System.currentTimeMillis() + jwtExpirationMs))
+            .signWith(key)
             .compact()
     }
 
@@ -58,8 +66,12 @@ class JwtUtils {
      * @throws io.jsonwebtoken.JwtException if the token is invalid or expired.
      */
     fun getUsernameFromToken(token: String): String {
-        return Jwts.parserBuilder().setSigningKey(key).build()
-            .parseClaimsJws(token).body.subject
+        return Jwts.parser()
+            .verifyWith(key)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+            .subject
     }
 
     /**
@@ -73,8 +85,8 @@ class JwtUtils {
     fun validateToken(token: String): Boolean {
         return try {
             logger.debug("Validating JWT token")
-            val claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token)
-            logger.debug("Token valid for user: {}", claims.body.subject)
+            val claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token)
+            logger.debug("Token valid for user: {}", claims.payload.subject)
             true
         } catch (e: Exception) {
             logger.warn("Token validation failed: {} - {}", e.javaClass.simpleName, e.message)

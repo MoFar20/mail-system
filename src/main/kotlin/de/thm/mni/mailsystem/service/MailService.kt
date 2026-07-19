@@ -50,6 +50,26 @@ class MailService(private val mailRepository: MailRepository) {
 
     private val logger = LoggerFactory.getLogger(MailService::class.java)
 
+    private val ALLOWED_MIME_TYPES = setOf(
+        "image/jpeg", "image/png", "image/gif", "image/webp",
+        "application/pdf",
+        "text/plain",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/zip",
+        "application/octet-stream"
+    )
+
+    private fun assertMailAccess(mail: Mail, requestingEmail: String) {
+        val isSender = mail.sender == requestingEmail
+        val isRecipient = mail.recipients.any { it.address == requestingEmail }
+        if (!isSender && !isRecipient) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied")
+        }
+    }
+
     /**
      * Retrieves all emails for a user (both sent and received).
      *
@@ -71,6 +91,19 @@ class MailService(private val mailRepository: MailRepository) {
     @Transactional(readOnly = true)
     fun getAllMails(email: String): List<MailDto> {
         return mailRepository.findAllByUser(email).toDto()
+    }
+
+    /**
+     * Asserts that the requesting user has access to the specified mail.
+     *
+     * @param mail The mail entity to check access for
+     * @param requestingEmail The email address of the requesting user
+     * @throws ResponseStatusException if the user does not have access
+     */
+    private fun assertMailAccess(mail: Mail, requestingEmail: String) {
+    val isSender = mail.sender == requestingEmail
+    val isRecipient = mail.recipients.any { it.address == requestingEmail }
+    if (!isSender && !isRecipient) throw ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied")
     }
 
     /**
@@ -158,10 +191,11 @@ class MailService(private val mailRepository: MailRepository) {
      * @see ResponseStatusException
      */
     @Transactional(readOnly = true)
-    fun getMailById(id: Long): MailDto {
-        return mailRepository.findById(id)
+    fun getMailById(id: Long, requestingEmail: String): MailDto {
+        val mail = mailRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
-            .toDto()
+        assertMailAccess(mail, requestingEmail)
+        return mail.toDto()
     }
 
     /**
@@ -272,9 +306,13 @@ class MailService(private val mailRepository: MailRepository) {
      * @see MailUpdateRequest
      */
     @Transactional
-    fun updateMail(id: Long, updateRequest: MailUpdateRequest): MailDto {
+    fun updateMail(id: Long, updateRequest: MailUpdateRequest, requestingEmail: String): MailDto {
         val existingMail = mailRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
+        assertMailAccess(existingMail, requestingEmail)
+        if (existingMail.sender != requestingEmail) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only the sender can edit a mail")
+        }
 
         if (existingMail.status != Mail.MailStatus.DRAFT) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only draft mails can be modified")
@@ -330,10 +368,10 @@ class MailService(private val mailRepository: MailRepository) {
      * @see MailRepository.deleteById
      */
     @Transactional
-    fun deleteMail(id: Long) {
-        if (!mailRepository.existsById(id)) {
-            throw ResponseStatusException(HttpStatus.NOT_FOUND)
-        }
+    fun deleteMail(id: Long, requestingEmail: String) {
+        val mail = mailRepository.findById(id)
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
+        assertMailAccess(mail, requestingEmail)
         mailRepository.deleteById(id)
     }
 
@@ -371,9 +409,14 @@ class MailService(private val mailRepository: MailRepository) {
      * @see Mail.MailStatus
      */
     @Transactional
-    fun sendMail(id: Long): MailDto {
+    fun sendMail(id: Long, requestingEmail: String): MailDto {
         val mail = mailRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
+        
+        assertMailAccess(mail, requestingEmail)
+        if (mail.sender != requestingEmail) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only the sender can send a mail")
+        }
 
         if (mail.status != Mail.MailStatus.DRAFT) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only mails with status DRAFT can be sent.")
@@ -416,9 +459,10 @@ class MailService(private val mailRepository: MailRepository) {
      * @see AttachmentDto
      */
     @Transactional(readOnly = true)
-    fun getAttachments(id: Long): List<AttachmentDto> {
+    fun getAttachments(id: Long, requestingEmail: String): List<AttachmentDto> {
         val mail = mailRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
+        assertMailAccess(mail, requestingEmail)
         return mail.attachments.toDto()
     }
 
@@ -466,9 +510,14 @@ class MailService(private val mailRepository: MailRepository) {
      * @see Attachment
      */
     @Transactional
-    fun uploadAttachment(id: Long, file: MultipartFile): MailDto {
+    fun uploadAttachment(id: Long, file: MultipartFile, requestingEmail: String): MailDto {
         val mail = mailRepository.findById(id)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
+        
+        assertMailAccess(mail, requestingEmail)
+        if (mail.sender != requestingEmail) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only the sender can add attachments")
+        }
 
         if (mail.status != Mail.MailStatus.DRAFT) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Can only add attachments to draft mails")
@@ -478,9 +527,24 @@ class MailService(private val mailRepository: MailRepository) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty")
         }
 
+        val detectedMimeType = file.contentType ?: "application/octet-stream"
+        if (detectedMimeType !in ALLOWED_MIME_TYPES) {
+            throw ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "File type '$detectedMimeType' is not allowed."
+            )
+        }
+        // Sanitize filename - limit length, strip path separators, null bytes, and control characters
+        val fileName = (file.originalFilename ?: "unknown")
+            .replace(Regex("[/\\\\]"), "_")
+            .replace(Regex("[\\x00-\\x1F]"), "_")
+            .trim('.')
+            .take(255)
+            .ifBlank { "unknown" }
+
         val attachment = Attachment(
-            fileName = file.originalFilename ?: "unknown",
-            mimeType = file.contentType ?: "application/octet-stream",
+            fileName = fileName,
+            mimeType = detectedMimeType,
             size = file.size,
             data = file.bytes,
             mail = mail
@@ -533,9 +597,10 @@ class MailService(private val mailRepository: MailRepository) {
      * @see AttachmentData
      */
     @Transactional(readOnly = true)
-    fun downloadAttachment(mailId: Long, attachmentId: Long): AttachmentData {
+    fun downloadAttachment(mailId: Long, attachmentId: Long, requestingEmail: String): AttachmentData {
         val mail = mailRepository.findById(mailId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
+        assertMailAccess(mail, requestingEmail)
 
         val attachment = mail.attachments.find { it.id == attachmentId }
             ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found")
@@ -581,9 +646,13 @@ class MailService(private val mailRepository: MailRepository) {
      * @see Mail.attachments
      */
     @Transactional
-    fun deleteAttachment(mailId: Long, attachmentId: Long) {
+    fun deleteAttachment(mailId: Long, attachmentId: Long, requestingEmail: String) {
         val mail = mailRepository.findById(mailId)
             .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, "Mail not found") }
+        assertMailAccess(mail, requestingEmail)
+        if (mail.sender != requestingEmail) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only the sender can delete attachments")
+        }
 
         if (mail.status != Mail.MailStatus.DRAFT) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Can only delete attachments from draft mails")

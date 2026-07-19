@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 
 @RestController
 @RequestMapping("/api/mails")
-@CrossOrigin 
 @SecurityRequirement(name = "bearer-jwt")
 class MailController(private val mailService: MailService) {
 
@@ -47,7 +46,7 @@ class MailController(private val mailService: MailService) {
 
     @GetMapping("/{id}")
     fun getMailById(@PathVariable id: Long): MailDto {
-        return mailService.getMailById(id)
+        return mailService.getMailById(id, getAuthenticatedEmail())
     }
 
     @PostMapping
@@ -58,34 +57,34 @@ class MailController(private val mailService: MailService) {
 
     @PutMapping("/{id}")
     fun updateMail(@PathVariable id: Long, @Valid @RequestBody updateRequest: MailUpdateRequest): MailDto {
-        return mailService.updateMail(id, updateRequest)
+        return mailService.updateMail(id, updateRequest, getAuthenticatedEmail())
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteMail(@PathVariable id: Long) {
-        mailService.deleteMail(id)
+        mailService.deleteMail(id, getAuthenticatedEmail())
     }
 
     @PostMapping("/{id}/send")
     fun sendMail(@PathVariable id: Long): MailDto {
-        return mailService.sendMail(id)
+        return mailService.sendMail(id, getAuthenticatedEmail())
     }
 
     @GetMapping("/{id}/attachments")
     fun getAttachments(@PathVariable id: Long): List<AttachmentDto> {
-        return mailService.getAttachments(id)
+        return mailService.getAttachments(id, getAuthenticatedEmail())
     }
 
     @PostMapping("/{id}/attachments")
     @ResponseStatus(HttpStatus.CREATED)
     fun uploadAttachment(@PathVariable id: Long, @RequestPart("file") file: MultipartFile): MailDto {
-        return mailService.uploadAttachment(id, file)
+        return mailService.uploadAttachment(id, file, getAuthenticatedEmail())
     }
 
     @GetMapping("/{mailId}/attachments/{attachmentId}/download")
     fun downloadAttachment(@PathVariable mailId: Long, @PathVariable attachmentId: Long): ResponseEntity<ByteArray> {
-        val attachmentData = mailService.downloadAttachment(mailId, attachmentId)
+        val attachmentData = mailService.downloadAttachment(mailId, attachmentId, getAuthenticatedEmail())
 
         val headers = HttpHeaders().apply {
             contentType = MediaType.parseMediaType(attachmentData.mimeType)
@@ -101,6 +100,6 @@ class MailController(private val mailService: MailService) {
     @DeleteMapping("/{mailId}/attachments/{attachmentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteAttachment(@PathVariable mailId: Long, @PathVariable attachmentId: Long) {
-        mailService.deleteAttachment(mailId, attachmentId)
+        mailService.deleteAttachment(mailId, attachmentId, getAuthenticatedEmail())
     }
 }

@@ -40,3 +40,18 @@ data class RegisterResponse(
     val message: String,
     val mail: String? = null
 )
+/**
+ * Data Transfer Object for user login.
+ *
+ * @property mail The email address of the user.
+ * @property password The password of the user.
+ */
+data class LoginRequest(
+    @field:NotBlank(message = "Mail address is required")
+    @field:Email(message = "Must be a valid email address")
+    val mail: String,
+
+    @field:NotBlank(message = "Password is required")
+    @field:Size(max = 128, message = "Password must not exceed 128 characters")
+    val password: String
+)

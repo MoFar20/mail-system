@@ -82,9 +82,13 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
             addAllowedOrigin("http://localhost:4200")
             // Allow same-origin requests (production - frontend served by Spring Boot)
             addAllowedOrigin("http://localhost:8080")
-            
-            addAllowedMethod("*")
-            addAllowedHeader("*")
+
+            // Explicitly enumerate only the HTTP methods used by this API
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+
+            // Explicitly enumerate only needed request headers
+            allowedHeaders = listOf("Authorization", "Content-Type", "Accept")
+
             exposedHeaders = listOf("Authorization", "Content-Type")
             allowCredentials = true
             maxAge = 3600L
