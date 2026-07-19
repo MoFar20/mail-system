@@ -52,7 +52,8 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
                     // Public: API documentation (Swagger UI, OpenAPI)
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                     
-                    // Public: H2 Console (development/debugging)
+                    // H2 Console: development only - MUST be disabled in production
+                    // Set spring.h2.console.enabled=false in production application properties
                     .requestMatchers("/h2-console/**").permitAll()
                     
                     // Public: CORS preflight requests
@@ -82,9 +83,13 @@ class SecurityConfig(private val jwtAuthenticationFilter: JwtAuthenticationFilte
             addAllowedOrigin("http://localhost:4200")
             // Allow same-origin requests (production - frontend served by Spring Boot)
             addAllowedOrigin("http://localhost:8080")
-            
-            addAllowedMethod("*")
-            addAllowedHeader("*")
+
+            // Explicitly enumerate only the HTTP methods used by this API
+            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+
+            // Explicitly enumerate only needed request headers
+            allowedHeaders = listOf("Authorization", "Content-Type", "Accept")
+
             exposedHeaders = listOf("Authorization", "Content-Type")
             allowCredentials = true
             maxAge = 3600L
